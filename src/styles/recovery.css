@@ -1,0 +1,224 @@
+/* ==========================================================================
+   Recovery kit: the settings card, the gate door and the printed sheet.
+
+   Two surfaces share one secret. On screen the code is a loud monospace block
+   that exists only while it is fresh; on paper `.recovery-sheet` is the only
+   thing that renders, because the code is meant to leave the machine as ink.
+   ========================================================================== */
+
+.recovery-state {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  font-size: var(--t-meta);
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+
+.recovery-state svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--ink-3);
+}
+
+.recovery-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--line));
+  border-radius: var(--r-3);
+  background: var(--warn-soft);
+}
+
+.recovery-preview-label {
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--warn);
+}
+
+.recovery-preview-warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  margin: 0;
+  font-size: var(--t-meta);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.recovery-preview-warn svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.recovery-code {
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.7;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.recovery-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  border: 1px solid color-mix(in srgb, var(--danger) 40%, var(--line));
+  border-radius: var(--r-3);
+  background: var(--danger-soft);
+}
+
+.recovery-confirm p {
+  margin: 0;
+  font-size: var(--t-meta);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+/* The gate door reuses `.gate-form`; the warning is the one extra block that
+   has to be read before the code is typed. */
+
+.recovery-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--line));
+  border-radius: var(--r-3);
+  background: var(--warn-soft);
+  color: var(--ink-2);
+}
+
+.recovery-warning svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--warn);
+}
+
+.recovery-warning p {
+  margin: 0;
+  font-size: var(--t-meta);
+  line-height: 1.55;
+}
+
+.recovery-door .recovery-code {
+  font-size: 14px;
+}
+
+/* ---------------------------------------------------------- printed sheet */
+
+/* Hidden on screen in every state; the kit is never something the app shows
+   except as the fresh-code preview above. */
+.recovery-sheet {
+  display: none;
+}
+
+@media print {
+  /* Paper has no chrome: hide the whole document, then show the sheet. */
+  body * {
+    visibility: hidden !important;
+  }
+
+  .recovery-sheet,
+  .recovery-sheet * {
+    visibility: visible !important;
+  }
+
+  .recovery-sheet {
+    display: block;
+    /* Pulled out of the (invisible but still laid-out) app chrome: absolute
+       without `bottom` so the sheet keeps its natural height and paginates. */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    color: #000;
+    background: #fff;
+    font-family: var(--font-ui);
+  }
+
+  .recovery-sheet-head {
+    padding-bottom: 10mm;
+    border-bottom: 1px solid #000;
+    margin-bottom: 10mm;
+  }
+
+  .recovery-sheet-brand {
+    margin: 0 0 2mm;
+    font-size: 9pt;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .recovery-sheet-title {
+    margin: 0 0 2mm;
+    font-size: 20pt;
+    line-height: 1.2;
+  }
+
+  .recovery-sheet-date {
+    margin: 0;
+    font-size: 9pt;
+  }
+
+  .recovery-sheet-label {
+    margin: 0 0 3mm;
+    font-size: 9pt;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .recovery-sheet .recovery-code {
+    display: block;
+    margin-bottom: 8mm;
+    padding: 6mm;
+    border: 1px solid #000;
+    font-size: 14pt;
+    letter-spacing: 0.14em;
+    line-height: 1.8;
+    color: #000;
+    word-break: break-all;
+  }
+
+  .recovery-sheet-steps {
+    margin: 0 0 8mm;
+    padding-left: 6mm;
+    font-size: 10pt;
+    line-height: 1.55;
+  }
+
+  .recovery-sheet-steps li {
+    margin-bottom: 3mm;
+  }
+
+  .recovery-sheet-warning {
+    margin: 0 0 8mm;
+    padding: 4mm;
+    border: 2px solid #000;
+    font-size: 10pt;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  .recovery-sheet-foot {
+    margin: 0;
+    font-size: 8pt;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #333;
+  }
+
+  @page {
+    margin: 16mm;
+  }
+}

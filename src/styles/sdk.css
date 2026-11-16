@@ -1,0 +1,222 @@
+/* ==========================================================================
+   Settings → Developer: CLI & SDK card (item 25).
+
+   Same primitives as the SSH agent card — state pill, monospace pipe, a
+   copy-paste block — plus the one-time token panel. The token is deliberately
+   the loudest element on the card: it exists once, and everything else here is
+   read-only reporting.
+   ========================================================================== */
+
+.sdk-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  font-size: var(--t-meta);
+  font-weight: 500;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.sdk-state.is-on {
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--line));
+  background: var(--ok-soft);
+}
+
+.sdk-state.is-warn {
+  color: var(--warn);
+  border-color: color-mix(in srgb, var(--warn) 45%, var(--line));
+  background: var(--warn-soft);
+}
+
+.sdk-state.is-off {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--line));
+  background: var(--danger-soft);
+}
+
+.sdk-pipe,
+.sdk-code code,
+.sdk-token-value {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+
+.sdk-pipe {
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--sunken);
+  align-self: flex-start;
+}
+
+.sdk-count {
+  font-size: var(--t-meta);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.sdk-token {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  border-radius: var(--r-2);
+  background: var(--sunken);
+}
+
+.sdk-token-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sdk-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.sdk-token-value {
+  display: block;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--input);
+  color: var(--ink);
+  word-break: break-all;
+  /* A single click selects the whole token, for people who cannot use the
+     copy button (webview clipboard permission denied). */
+  user-select: all;
+}
+
+.sdk-reference {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  margin-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.sdk-reference-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.sdk-reference-title svg {
+  color: var(--ink-3);
+}
+
+.sdk-reference p {
+  margin: 0;
+}
+
+.sdk-code {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--sunken);
+  overflow-x: auto;
+}
+
+.sdk-code code {
+  display: block;
+  color: var(--ink);
+  user-select: text;
+  white-space: pre;
+}
+
+.sdk-error {
+  margin: 0;
+  font-size: var(--t-meta);
+  color: var(--danger);
+}
+
+/* ---------------------------------------------------- paired CLI tokens */
+
+.sdk-tokens {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  margin-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.sdk-tokens-head .setting-hint {
+  display: block;
+}
+
+.sdk-tokens-empty {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px dashed var(--line);
+  border-radius: var(--r-2);
+  background: var(--sunken);
+  font-size: var(--t-meta);
+  color: var(--ink-3);
+}
+
+.sdk-token-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--sunken);
+}
+
+.sdk-token-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sdk-token-row:last-child {
+  border-bottom: 0;
+}
+
+.sdk-token-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sdk-token-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.sdk-token-meta {
+  font-size: var(--t-meta);
+  color: var(--ink-3);
+}

@@ -1,0 +1,81 @@
+[package]
+name = "kestrel"
+version = "0.1.0"
+description = "Kestrel — local-first password manager (desktop shell)"
+edition = "2021"
+rust-version = "1.90"
+
+[workspace]
+members = ["core", "cli", "mcp", "nmhost", "passkey", "sync", "net", "engine"]
+
+[lib]
+name = "kestrel"
+crate-type = ["rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+kestrel-core = { path = "core" }
+# WebAuthn engine: CBOR/COSE, credential creation and assertion. No vault code.
+kestrel-passkey = { path = "passkey" }
+kestrel-engine = { path = "engine" }
+kestrel-net = { path = "net" }
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-global-shortcut = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
+# `ShellExecuteW` for the allowlisted URL opener. 0.52 is in the lock file but
+# not in the offline cache; 0.59 is cached and exposes the same call.
+windows-sys = { version = "0.59", features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Security_Authorization",
+    "Win32_Storage_FileSystem",
+    "Win32_System_Pipes",
+    "Win32_System_IO",
+    "Win32_System_Threading",
+    "Win32_UI_Shell",
+    "Win32_UI_WindowsAndMessaging",
+] }
+# UI Automation for the app autofill picker: the raw `windows-sys` bindings
+# would mean hand-written COM vtables, so this crate takes the generated ones.
+windows = { version = "0.62", features = [
+    "Win32_Foundation",
+    "Win32_System_Com",
+    "Win32_System_Threading",
+    "Win32_UI_Accessibility",
+    # `IFileOpenDialog` and `IFileSaveDialog`: the folder picker on the create
+    # screen, the vault file picker on the missing-file screen, and the recovery
+    # kit's save dialog. `Shell_Common` carries `COMDLG_FILTERSPEC`.
+    "Win32_UI_Shell",
+    "Win32_UI_Shell_Common",
+    "Win32_UI_WindowsAndMessaging",
+    "UI_UIAutomation",
+] }
+tauri-plugin-single-instance = "2"
+# OpenSSH key parsing, formatting and agent-style signatures for the SSH agent.
+# `encryption` lets us detect passphrase-protected keys instead of misparsing
+# them; the key-type features are exactly the algorithms the agent serves.
+ssh-key = { version = "0.6.7", default-features = false, features = [
+    "ed25519",
+    "encryption",
+    "getrandom",
+    "p256",
+    "p384",
+    "p521",
+    "rsa",
+    "std",
+] }
+# RSA signatures must follow the hash the client names in `SIGN_REQUEST`
+# (`rsa-sha2-256` unless `rsa-sha2-512` is requested); `ssh-key`'s own RSA
+# signer is hard-wired to SHA-512, so the digest is chosen here. The `sha2`
+# feature re-exports the same digest crate `ssh-key` verifies with.
+rsa = { version = "0.9", features = ["sha2"] }
+# `Signer`/`Verifier` traits that `ssh-key` implements for every key type.
+signature = "2"
+# SDK pairing: one 32-byte random token per session, kept only as a SHA-256
+# digest so a process-memory dump cannot replay it.
+rand = "0.8"
+sha2 = "0.10"

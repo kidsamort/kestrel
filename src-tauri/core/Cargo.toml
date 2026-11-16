@@ -1,0 +1,51 @@
+[package]
+name = "kestrel-core"
+version = "0.1.0"
+edition = "2021"
+description = "Vault core: cryptography, encrypted storage, session lifecycle"
+license = "MIT"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rusqlite = { version = "0.32", features = ["bundled"] }
+argon2 = "0.5"
+chacha20poly1305 = "0.10"
+# X25519 through `MontgomeryPoint`, so the agreement half of a device keypair
+# uses the same cached curve implementation as the rest of the crate instead of
+# adding a second curve dependency.
+curve25519-dalek = "4.1"
+# Ed25519 for the signing half of a device keypair. The shell already links it;
+# the seed is sealed under the master key exactly like the agreement scalar.
+ed25519-dalek = { version = "2.2", default-features = false, features = [
+    "std",
+    "zeroize",
+] }
+hkdf = "0.12"
+sha2 = "0.10"
+sha1 = "0.10"
+hmac = "0.12"
+rand = "0.8"
+zeroize = { version = "1", features = ["derive"] }
+uuid = { version = "1", features = ["v4"] }
+base32 = "0.5"
+thiserror = "1"
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+arboard = "3"
+zip = { version = "2", default-features = false, features = ["deflate"] }
+ureq = { version = "2", features = ["tls"] }
+
+[dev-dependencies]
+tempfile = "3"
+rusqlite = { version = "0.32", features = ["bundled"] }
+# The enrolment test checks that the sealed signing seed derives the public key
+# the card shows, which needs the same verifier the net crate will use.
+ed25519-dalek = { version = "2.2", default-features = false, features = [
+    "std",
+    "zeroize",
+] }
+
+[target.'cfg(windows)'.dependencies]
+# CNG/NCrypt for the Windows Hello-wrapped key. Same crate the shell already
+# uses for ShellExecuteW, and already in the lock file.
+windows-sys = { version = "0.59", features = ["Win32_Security_Cryptography"] }

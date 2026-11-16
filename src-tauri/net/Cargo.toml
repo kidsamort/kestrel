@@ -1,0 +1,27 @@
+[package]
+name = "kestrel-net"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+description = "Client for the Kestrel sync protocol"
+
+[dependencies]
+# The client half of PROTOCOL.md: an Ed25519 signature per request and a JSON
+# body. Nothing here knows what a vault item is.
+ed25519-dalek = "2.2"
+sha2 = "0.10"
+hex = "0.4"
+base64 = "0.22"
+rand = "0.8"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+# `tls` is rustls with the webpki root store. gzip is off: the service never
+# compresses, and a decompression path in a vault client is surface for nothing.
+ureq = { version = "2.12", default-features = false, features = ["tls"] }
+
+[dev-dependencies]
+# The integration tests run the real service over a real socket: kestrel-sync
+# for the server itself, tokio to give it a runtime inside a test thread.
+kestrel-sync = { path = "../sync" }
+tokio = { version = "1", features = ["rt-multi-thread", "net", "sync", "time"] }

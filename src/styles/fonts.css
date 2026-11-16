@@ -1,0 +1,27 @@
+/* Inter, vendored. Three weights, latin subset, no network request.
+   `block` is deliberate: the files are local 24 kB assets and are preloaded in
+   index.html, so text is painted in Inter rather than briefly in a fallback. */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url("../assets/inter/inter-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-display: block;
+  src: url("../assets/inter/inter-latin-500-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url("../assets/inter/inter-latin-600-normal.woff2") format("woff2");
+}

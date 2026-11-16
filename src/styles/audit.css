@@ -1,0 +1,292 @@
+/* ==========================================================================
+   Security audit — counters, breach banner, finding rows.
+   Scoped to `.audit-` so it composes with the shared panel layout in app.css.
+   ========================================================================== */
+
+.audit-column {
+  gap: 16px;
+}
+
+.audit-counters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  gap: 10px;
+}
+
+.audit-counter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 13px 14px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--surface);
+}
+.audit-counter-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.audit-counter-icon {
+  display: inline-flex;
+  color: var(--ink-3);
+}
+.audit-counter-label {
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.audit-counter-value {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  line-height: 1.15;
+  color: var(--ink);
+}
+.audit-counter-note {
+  font-size: var(--t-meta);
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+.audit-counter[data-kind="weak"] .audit-counter-icon,
+.audit-counter[data-kind="weak"] .audit-counter-value {
+  color: var(--warn);
+}
+.audit-counter[data-kind="reused"] .audit-counter-icon,
+.audit-counter[data-kind="reused"] .audit-counter-value {
+  color: var(--warn);
+}
+.audit-counter[data-kind="breached"] .audit-counter-icon,
+.audit-counter[data-kind="breached"] .audit-counter-value {
+  color: var(--danger);
+}
+
+.audit-check {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.audit-check-main {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 240px;
+  flex: 1;
+}
+.audit-k-anon {
+  font-size: var(--t-meta);
+  line-height: 1.6;
+  color: var(--ink-3);
+  max-width: 560px;
+}
+
+.audit-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--sunken);
+}
+.audit-banner > svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--ink-3);
+}
+.audit-banner-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-meta);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.audit-banner-copy strong {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.audit-banner.is-warn {
+  border-color: var(--warn);
+  background: var(--warn-soft);
+}
+.audit-banner.is-warn > svg {
+  color: var(--warn);
+}
+.audit-banner.is-danger {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+.audit-banner.is-danger > svg {
+  color: var(--danger);
+}
+.audit-banner.is-info > svg {
+  color: var(--ink-3);
+}
+.audit-banner .btn {
+  flex: none;
+  align-self: center;
+}
+
+.audit-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.audit-group-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ink-3);
+}
+.audit-group-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.audit-group-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: var(--r-pill);
+  background: var(--sunken);
+  color: var(--ink-3);
+}
+
+.audit-finding[data-kind="expired"] .audit-finding-meta {
+  color: var(--danger);
+}
+.audit-finding[data-kind="expiring"] .audit-finding-meta {
+  color: var(--warn);
+}
+.audit-finding-meta time {
+  font-family: var(--font-mono);
+  color: var(--ink-3);
+}
+
+.audit-expiry-empty {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  font-size: var(--t-meta);
+  color: var(--ink-3);
+}
+.audit-expiry-empty > svg {
+  flex: none;
+  color: var(--ok);
+}
+
+.audit-findings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  overflow: hidden;
+}
+.audit-finding {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--line);
+}
+.audit-finding:last-child {
+  border-bottom: 0;
+}
+.audit-finding-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+.audit-finding-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.audit-finding-meta {
+  font-size: var(--t-meta);
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.audit-finding .btn {
+  flex: none;
+}
+
+.audit-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 34px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  text-align: center;
+}
+.audit-empty-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 6px;
+  border-radius: 50%;
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+.audit-empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.audit-empty-copy {
+  font-size: var(--t-meta);
+  line-height: 1.55;
+  color: var(--ink-3);
+  max-width: 420px;
+}
+
+.audit-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--t-meta);
+  color: var(--ink-3);
+  padding: 6px 2px;
+}
+
+.audit-spin {
+  animation: audit-spin 900ms linear infinite;
+}
+
+@keyframes audit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .audit-spin {
+    animation-duration: 2400ms;
+  }
+}

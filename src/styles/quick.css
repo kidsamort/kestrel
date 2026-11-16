@@ -1,0 +1,188 @@
+/* ==========================================================================
+   Quick-access palette — the 420 x 560 surface from DESIGN.md §6 (18).
+
+   One card, no window chrome: a 6 px drag strip, then either the unlock door
+   or search + rows + a hint footer. Everything else comes from app.css tokens
+   and the `.palette-*` primitives, so the palette cannot drift from the
+   in-app command palette.
+   ========================================================================== */
+
+/* The window is transparent, so the card is the whole visual surface: no
+   system frame, no square corners peeking out behind it. */
+html,
+body,
+#root {
+  background: transparent;
+}
+
+.qa {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Drag handle: an invisible strip over the card's top edge. It used to be a
+   painted bar, which read as a second header. */
+.qa-drag {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 12px;
+  background: transparent;
+  border: 0;
+  z-index: 2;
+}
+
+.qa-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.qa-search-row {
+  flex: none;
+  padding: 10px 12px;
+}
+
+.qa-results {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  padding: 6px;
+}
+
+.qa-results-bare {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+}
+
+.qa-row {
+  user-select: none;
+}
+.qa-row:hover {
+  background: var(--hover);
+}
+
+.qa-actions {
+  display: inline-flex;
+  gap: 2px;
+  flex: none;
+  opacity: 0.5;
+  transition: opacity var(--dur-1) var(--ease-out);
+}
+.qa-row:hover .qa-actions,
+.qa-row.is-active .qa-actions,
+.qa-actions:focus-within {
+  opacity: 1;
+}
+.qa-actions .icon-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-1);
+}
+
+.qa-foot {
+  flex: none;
+  padding: 7px 12px;
+  gap: 10px;
+}
+.qa-foot-vault {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-3);
+}
+
+.qa-foot-note {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------- unlock door */
+
+.qa-locked {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  padding: 26px 22px 18px;
+  overflow-y: auto;
+}
+.qa-locked .field {
+  width: 100%;
+}
+.qa-locked .empty-copy {
+  max-width: 320px;
+}
+.qa-seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-3);
+  background: var(--ground);
+  color: var(--ink-3);
+  margin-bottom: 2px;
+}
+.qa-locked-foot {
+  margin-top: auto;
+  padding-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--t-micro);
+  color: var(--ink-3);
+}
+.qa-locked-foot .mark {
+  color: var(--ink-3);
+}
+
+/* ------------------------------------------------------------------ states */
+
+.qa-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 30px 18px;
+}
+.qa-empty-state .empty-copy {
+  max-width: 300px;
+}
+
+.qa-empty {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--danger);
+}
+
+.qa-skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+}

@@ -1,0 +1,277 @@
+/* ==========================================================================
+   Item editor → Access.
+
+   The section lives in the editor's side column and shares the panel
+   primitives from app.css (`.side-panel`, `.block-title`). Only the parts
+   unique to access live here: the principal list, the per-field checklist and
+   the audit disclosure.
+   ========================================================================== */
+
+.access-panel {
+  gap: 10px;
+}
+
+.access-panel .block-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.access-panel .block-title svg {
+  color: var(--ink-3);
+}
+
+.access-copy,
+.access-note,
+.access-empty,
+.access-warning {
+  margin: 0;
+  font-size: var(--t-meta);
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+
+.access-empty {
+  padding: 10px 12px;
+  border: 1px dashed var(--line);
+  border-radius: var(--r-2);
+  background: var(--sunken);
+  color: var(--ink-2);
+}
+
+.access-note {
+  color: var(--ink-3);
+}
+
+.access-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 7px 9px;
+  border: 1px solid color-mix(in srgb, var(--warn) 40%, var(--line));
+  border-radius: var(--r-2);
+  background: var(--warn-soft);
+  color: var(--ink-2);
+}
+
+.access-warning svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--warn);
+}
+
+.access-error {
+  margin: 0;
+  font-size: var(--t-meta);
+  color: var(--danger);
+}
+
+/* ------------------------------------------------------------- principals */
+
+.access-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.access-principal {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--sunken);
+}
+
+.access-principal-head {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+}
+
+.access-kind {
+  flex: none;
+  padding: 0 5px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.access-kind.is-mcp {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  color: var(--accent);
+}
+
+.access-client {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.access-meta {
+  margin-left: auto;
+  flex: none;
+  font-size: var(--t-meta);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------- checklist */
+
+.access-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.access-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 2px 0;
+  font-size: var(--t-meta);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.access-check input {
+  accent-color: var(--accent);
+}
+
+.access-check.is-outside {
+  cursor: not-allowed;
+  color: var(--ink-3);
+}
+
+.access-check.is-outside .access-check-label {
+  opacity: 0.7;
+}
+
+.access-check-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.access-check-kind {
+  margin-left: auto;
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+}
+
+.access-principal-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding-top: 5px;
+  border-top: 1px solid var(--line);
+  font-size: var(--t-meta);
+  color: var(--ink-3);
+}
+
+.access-hint {
+  color: var(--ink-3);
+  font-style: italic;
+}
+
+/* ------------------------------------------------------------------- audit */
+
+.access-audit {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 9px;
+  border-top: 1px solid var(--line);
+}
+
+.access-audit-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--t-meta);
+  color: var(--ink-2);
+}
+
+.access-audit-line svg {
+  color: var(--ink-3);
+}
+
+.access-audit-toggle {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: var(--t-meta);
+  cursor: pointer;
+}
+
+.access-audit-toggle:hover {
+  text-decoration: underline;
+}
+
+.access-audit-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--sunken);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.access-audit-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 9px;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--t-meta);
+}
+
+.access-audit-row:last-child {
+  border-bottom: 0;
+}
+
+.access-audit-principal {
+  flex: none;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.access-audit-field {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-2);
+}
+
+.access-audit-row time {
+  margin-left: auto;
+  flex: none;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}

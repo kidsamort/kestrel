@@ -1,0 +1,269 @@
+/* Attachments block inside the item detail. Tokens only; the block rhythm
+   comes from `.block` in app.css so it lines up with every other section. */
+
+.attachment-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.attachment-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--r-pill);
+  color: var(--ink-3);
+  cursor: help;
+}
+
+.attachment-info:hover,
+.attachment-info:focus-visible {
+  color: var(--ink);
+  background: var(--hover);
+}
+
+/* rows ------------------------------------------------------------------ */
+
+.attachment-list {
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.attachment-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 43px;
+  padding: 6px 8px 6px 12px;
+}
+
+.attachment-row + .attachment-row {
+  border-top: 1px solid var(--line);
+}
+
+.attachment-row:hover {
+  background: var(--list);
+}
+
+.attachment-row.is-missing .attachment-glyph {
+  color: var(--warn);
+}
+
+.attachment-glyph {
+  display: inline-flex;
+  flex: none;
+  color: var(--ink-3);
+}
+
+.attachment-copy {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.attachment-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--t-body);
+  color: var(--ink);
+}
+
+.attachment-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--t-micro);
+  color: var(--ink-3);
+  letter-spacing: 0.02em;
+}
+
+.attachment-dot {
+  color: var(--line-strong);
+}
+
+.attachment-digest {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-3);
+}
+
+.attachment-missing {
+  margin-left: var(--s-2);
+  padding: 0 5px;
+  border-radius: var(--r-pill);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Local-only statement: quiet by design — a fact about v1, never a warning. */
+
+.attachment-local {
+  flex: none;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--ink-3);
+  font-size: var(--t-micro);
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.attachment-actions,
+.attachment-confirm {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.attachment-confirm > span {
+  font-size: var(--t-meta);
+  color: var(--ink-3);
+}
+
+.attachment-remove:hover:not(:disabled) {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.attachment-remove:focus-visible {
+  box-shadow: var(--focus-inset);
+}
+
+/* drop zone -------------------------------------------------------------- */
+
+.attachment-drop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  transition:
+    border-color var(--dur-2) var(--ease-out),
+    background var(--dur-2) var(--ease-out);
+}
+
+.attachment-drop.is-over {
+  border-color: var(--accent);
+  border-style: solid;
+  background: var(--accent-soft);
+}
+
+.attachment-drop-glyph {
+  display: inline-flex;
+  flex: none;
+  color: var(--ink-3);
+}
+
+.attachment-drop.is-over .attachment-drop-glyph {
+  color: var(--accent);
+}
+
+.attachment-drop-copy {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.attachment-drop-title {
+  font-size: var(--t-body);
+  color: var(--ink);
+}
+
+.attachment-drop-hint {
+  font-size: var(--t-micro);
+  color: var(--ink-3);
+}
+
+.attachment-input {
+  display: none;
+}
+
+/* progress --------------------------------------------------------------- */
+
+.attachment-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.attachment-progress-text {
+  font-size: var(--t-meta);
+  color: var(--ink-2);
+}
+
+.attachment-progress-track {
+  position: relative;
+  display: block;
+  height: 2px;
+  overflow: hidden;
+  border-radius: var(--r-pill);
+  background: var(--sunken);
+}
+
+.attachment-progress-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 38%;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  animation: attachment-seal 1.1s var(--ease-inout) infinite;
+}
+
+@keyframes attachment-seal {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(280%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .attachment-progress-bar {
+    animation: none;
+    width: 100%;
+    opacity: 0.45;
+  }
+}
+
+/* errors ----------------------------------------------------------------- */
+
+.attachment-error {
+  font-size: var(--t-meta);
+  color: var(--danger);
+  line-height: 1.55;
+}
+
+.attachment-retry {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--accent);
+  font-size: inherit;
+  text-decoration: underline;
+}
+
+.attachment-retry:focus-visible {
+  border-radius: var(--r-2);
+  box-shadow: var(--focus-inset);
+}

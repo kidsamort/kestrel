@@ -1,0 +1,38 @@
+[package]
+name = "kestrel-sync"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+description = "Self-hostable, server-blind sync service for Kestrel"
+
+[[bin]]
+name = "kestrel-sync"
+path = "src/main.rs"
+
+[lib]
+name = "kestrel_sync"
+path = "src/lib.rs"
+
+[dependencies]
+# HTTP/1.1 only. The service is expected to sit behind a TLS-terminating
+# reverse proxy, so there is no TLS stack and no HTTP/2 in this binary.
+hyper = { version = "1.12", features = ["server", "http1"] }
+hyper-util = { version = "0.1", features = ["tokio"] }
+http-body-util = "0.1"
+http = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "net", "macros", "sync", "time", "signal"] }
+# One file, no server process to administer. `bundled` compiles SQLite into
+# the binary so a self-host needs nothing but the executable and the file.
+rusqlite = { version = "0.32", features = ["bundled"] }
+ed25519-dalek = "2.2"
+sha2 = "0.10"
+base64 = "0.22"
+hex = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+
+[dev-dependencies]
+# A real HTTP client for the integration tests: the point is to drive TCP, so
+# the tests must not share the server's request types.
+ureq = "2.12"

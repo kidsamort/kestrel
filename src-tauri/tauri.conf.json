@@ -1,0 +1,66 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Kestrel",
+  "version": "0.1.0",
+  "identifier": "app.kestrel.vault",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:5273",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Kestrel",
+        "width": 1180,
+        "height": 760,
+        "minWidth": 900,
+        "minHeight": 600,
+        "decorations": false,
+        "transparent": false,
+        "resizable": true,
+        "center": true
+      },
+      {
+        "label": "quick",
+        "title": "Kestrel Quick Access",
+        "url": "index.html?window=quick",
+        "width": 420,
+        "height": 560,
+        "resizable": false,
+        "maximizable": false,
+        "minimizable": false,
+        "decorations": false,
+        "transparent": true,
+        "shadow": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "visible": false,
+        "center": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src ipc: http://ipc.localhost"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/icon.ico",
+      "icons/128x128.png",
+      "icons/icon.png"
+    ],
+    "publisher": "Kestrel",
+    "copyright": "MIT licensed. Kestrel is not affiliated with any other product.",
+    "shortDescription": "Local-first password manager",
+    "longDescription": "Kestrel keeps every password, note, TOTP secret and SSH key in a vault this machine owns: the Rust core holds the keys, the UI never sees a plaintext secret it did not ask for, and sync moves sealed bytes the server cannot read.",
+    "category": "Utility",
+    "windows": {
+      "nsis": {
+        "displayLanguageSelector": false
+      }
+    }
+  }
+}

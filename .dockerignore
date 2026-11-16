@@ -1,0 +1,19 @@
+# The build context for deploy/Dockerfile is the repository root. The image
+# needs the Rust workspace and nothing else; without these exclusions a local
+# build would upload node_modules and a multi-gigabyte target directory.
+node_modules/
+dist/
+src-tauri/target/
+src-tauri/gen/
+artifacts/
+coverage/
+.git/
+*.log
+*.db
+*.db-wal
+*.db-shm
+*.token
+.env
+.env.*
+AGENTS.md
+PLAN.md

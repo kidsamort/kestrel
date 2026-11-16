@@ -1,0 +1,360 @@
+/* ==========================================================================
+   Settings → Developer: MCP server card (item 24).
+
+   Same primitives as the CLI & SDK card (state pill, monospace path, copyable
+   block) plus the field checklist. The checklist is the card's one input: what
+   a client may read is decided here, once, and never in a dialog.
+   ========================================================================== */
+
+.mcp-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  font-size: var(--t-meta);
+  font-weight: 500;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.mcp-state.is-on {
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--line));
+  background: var(--ok-soft);
+}
+
+.mcp-state.is-off {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--line));
+  background: var(--danger-soft);
+}
+
+.mcp-path,
+.mcp-code code,
+.mcp-token-value {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+
+.mcp-path {
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--sunken);
+  align-self: flex-start;
+  max-width: 320px;
+  text-align: right;
+}
+
+/* ---------------------------------------------------------------- snippet */
+
+.mcp-snippet,
+.mcp-pairing,
+.mcp-paired,
+.mcp-audit-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  margin-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.mcp-snippet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mcp-snippet-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.mcp-code {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--sunken);
+  overflow-x: auto;
+  max-height: 220px;
+}
+
+.mcp-code code {
+  display: block;
+  color: var(--ink);
+  white-space: pre;
+  user-select: text;
+}
+
+/* ------------------------------------------------------------------ token */
+
+.mcp-token {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  border-radius: var(--r-2);
+  background: var(--sunken);
+}
+
+.mcp-token-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mcp-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.mcp-token-value {
+  display: block;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--input);
+  color: var(--ink);
+  word-break: break-all;
+  /* One click selects the whole token, for people who cannot use the copy
+     button (webview clipboard permission denied). */
+  user-select: all;
+}
+
+/* -------------------------------------------------------------- checklist */
+
+.mcp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mcp-label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--ink);
+}
+
+.mcp-count {
+  font-size: var(--t-meta);
+  color: var(--ink-3);
+}
+
+.mcp-input {
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-2);
+  background: var(--input);
+  color: var(--ink);
+  font-size: var(--t-value);
+}
+
+.mcp-input::placeholder {
+  color: var(--ink-3);
+}
+
+.mcp-input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
+}
+
+.mcp-input:disabled {
+  color: var(--ink-3);
+  background: var(--sunken);
+}
+
+.mcp-search {
+  width: 180px;
+  flex-shrink: 0;
+}
+
+.mcp-checklist-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mcp-checklist {
+  display: flex;
+  flex-direction: column;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--sunken);
+}
+
+.mcp-empty {
+  margin: 0;
+  padding: 10px 12px;
+}
+
+.mcp-item {
+  border-bottom: 1px solid var(--line);
+}
+
+.mcp-item:last-child {
+  border-bottom: 0;
+}
+
+.mcp-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 7px 10px;
+  background: transparent;
+  border: 0;
+  color: var(--ink);
+  font-size: 12.5px;
+  text-align: left;
+}
+
+.mcp-item-head:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+}
+
+.mcp-item-head:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.mcp-item-head:disabled {
+  color: var(--ink-3);
+}
+
+.mcp-item-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mcp-item-meta {
+  flex-shrink: 0;
+  font-size: var(--t-meta);
+  color: var(--ink-3);
+}
+
+.mcp-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px 10px 8px 28px;
+}
+
+.mcp-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: var(--t-meta);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.mcp-check input {
+  accent-color: var(--accent);
+}
+
+.mcp-check-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mcp-check-kind {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+}
+
+.mcp-submit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ------------------------------------------------------------------ audit */
+
+.mcp-audit {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--sunken);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.mcp-audit-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--t-meta);
+}
+
+.mcp-audit-row:last-child {
+  border-bottom: 0;
+}
+
+.mcp-audit-client {
+  flex-shrink: 0;
+  min-width: 96px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.mcp-audit-target {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  color: var(--ink-2);
+}
+
+.mcp-audit-field {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mcp-audit-when {
+  flex-shrink: 0;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.mcp-error {
+  margin: 0;
+  font-size: var(--t-meta);
+  color: var(--danger);
+}

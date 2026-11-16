@@ -1,0 +1,230 @@
+/* ==========================================================================
+   Autofill picker (DESIGN.md §6, 20) and its Settings card.
+
+   The overlay is a transparent, WS_EX_NOACTIVATE webview: the card is the
+   whole surface, the field in the other application keeps the caret. Rows
+   reuse the `.palette-*` primitives so the picker cannot drift from the
+   command palette or quick access.
+   ========================================================================== */
+
+html,
+body,
+#root {
+  background: transparent;
+}
+
+.af {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* App strip: which executable this offer belongs to. */
+.af-search {
+  padding: 9px 12px;
+}
+
+.af-body {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+  padding: 4px 6px 6px;
+}
+
+.af-group-label {
+  padding-top: 6px;
+}
+
+.af-row {
+  padding: 6px 8px;
+}
+
+/* One visible action per row; the row body only selects. */
+.af-fill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  height: 24px;
+  padding: 0 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-2);
+  background: var(--input);
+  color: var(--ink-2);
+  font-size: var(--t-meta);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.af-fill:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.af-fill:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+.af-fill:disabled {
+  color: var(--ink-disabled);
+}
+
+.palette-row.is-active .af-fill {
+  border-color: var(--line-strong);
+  background: var(--surface);
+}
+
+.af-empty {
+  padding: 18px 12px;
+  text-align: center;
+}
+
+/* Refusal, lock and boot states: the reason is the content. */
+.af-notice {
+  display: flex;
+  gap: 10px;
+  margin: 6px;
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--warn-soft);
+  color: var(--ink-2);
+  font-size: var(--t-meta);
+  line-height: 1.55;
+}
+
+.af-notice svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--warn);
+}
+
+.af-notice p {
+  margin: 0;
+}
+
+.af-notice-title {
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 2px !important;
+}
+
+.af-notice-sub {
+  margin-top: 4px !important;
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+}
+
+.af-foot {
+  gap: 10px;
+  /* 360 px wide: the app name and the key hint share the first line, and the
+     note takes the second. Clipping a sentence mid-word is worse than a
+     two-line footer. */
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+
+.af-foot-app {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-2);
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.af-foot-note {
+  flex: 1 1 100%;
+  order: 3;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.af-foot-keys {
+  flex: none;
+  margin-left: auto;
+}
+
+/* ------------------------------------------------------------- settings */
+
+.autofill-rules {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  overflow: hidden;
+}
+
+.autofill-rule {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-top: 1px solid var(--line);
+  font-size: var(--t-meta);
+}
+
+.autofill-rule:first-child {
+  border-top: 0;
+}
+
+.autofill-rule-head {
+  background: var(--sunken);
+  color: var(--ink-3);
+  font-size: var(--t-micro);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.autofill-exe {
+  font-family: var(--font-mono);
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.autofill-empty {
+  padding: 10px;
+  color: var(--ink-3);
+  font-size: var(--t-meta);
+}
+
+.autofill-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.autofill-add .input-shell {
+  flex: 1;
+  min-width: 160px;
+}
+
+.autofill-honesty {
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--warn-soft);
+  color: var(--ink-2);
+  font-size: var(--t-meta);
+  line-height: 1.6;
+}
+
+.autofill-honesty strong {
+  color: var(--ink);
+}

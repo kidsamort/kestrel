@@ -1,0 +1,45 @@
+Kestrel
+Copyright (c) 2026 Kestrel contributors
+
+## Not affiliated with 1Password
+
+Kestrel is an independent project. It is not produced, endorsed, sponsored or
+supported by AgileBits Inc., and it is not affiliated with or connected to
+1Password in any way.
+
+"1Password" is a trademark of AgileBits Inc. The name appears in this repository
+only to describe interoperability: Kestrel's importer and exporter read and
+write the 1PUX archive format, which is a published, documented file format.
+That support exists so a person can move their own data in and out; it is not a
+claim of association and it does not imply any endorsement. The importer maps
+the category identifiers that appear in an exported 1PUX file onto Kestrel's own
+categories; those identifiers are part of the archive format, not of any
+implementation.
+
+No 1Password code, assets, artwork, icons, fonts, translation strings or other
+copyrighted material is contained in this repository or in a Kestrel build. The
+implementation is original work, written against public specifications:
+Argon2id (RFC 9106), HKDF-SHA256 (RFC 5869), XChaCha20-Poly1305
+(draft-irtf-cfrg-xchacha), TOTP (RFC 6238), SQLite, WebAuthn/CTAP2 and the
+native-messaging protocol of the major browsers.
+
+## Third-party components
+
+Kestrel depends on third-party open-source software, each under its own licence.
+The authoritative list of versions is `src-tauri/Cargo.lock` for the Rust
+workspace and `package-lock.json` for the renderer; the licences themselves come
+from each package's own manifest (`cargo metadata`, `npm ls --json`), which is
+also what `cargo deny check licenses` reads. Every dependency is used under the
+terms of its own licence; those terms are not restated here and are not replaced
+or modified by the MIT licence of this project.
+
+Fonts: Inter (SIL Open Font License 1.1) is vendored as a build asset under its
+own licence. Cascadia Mono is named in the monospace stack and is not shipped:
+the renderer falls back to whatever monospace the platform provides.
+Icons: Lucide (ISC licence), consumed through `lucide-react`.
+
+## Security disclosure
+
+Kestrel stores secrets and is used by people who cannot afford a silent bug.
+Please report suspected vulnerabilities privately to the maintainers rather than
+in a public issue tracker.

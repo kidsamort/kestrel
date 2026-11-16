@@ -1,0 +1,119 @@
+/* ==========================================================================
+   Browser bridge (DESIGN.md §6, 19) and its Settings card.
+
+   The card reuses the global `.card` / `.setting-row` / `.select` primitives;
+   only the rule table and the honesty block are new. No colours or radii are
+   invented here — everything comes from tokens.css.
+   ========================================================================== */
+
+.browser-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--t-meta);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.browser-state.is-on {
+  color: var(--ok);
+}
+
+.browser-state.is-off {
+  color: var(--ink-3);
+}
+
+.browser-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.browser-mono {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 380px;
+}
+
+.browser-rules {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  overflow: hidden;
+}
+
+.browser-rule {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px 30px;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-top: 1px solid var(--line);
+  font-size: 12.5px;
+}
+
+.browser-rule:first-child {
+  border-top: 0;
+}
+
+.browser-rule-head {
+  background: var(--sunken);
+  color: var(--ink-3);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.browser-origin {
+  font-family: var(--font-mono);
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.browser-empty {
+  padding: 10px;
+  color: var(--ink-3);
+  font-size: var(--t-meta);
+}
+
+.browser-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.browser-add .input-shell {
+  flex: 1;
+  min-width: 180px;
+}
+
+.browser-honesty {
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--warn-soft);
+  color: var(--ink-2);
+  font-size: var(--t-meta);
+  line-height: 1.6;
+}
+
+.browser-honesty p + p {
+  margin-top: 6px;
+}
+
+.browser-honesty strong {
+  color: var(--ink);
+}
+
+.browser-error {
+  color: var(--danger);
+  font-size: var(--t-meta);
+}

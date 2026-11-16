@@ -1,0 +1,245 @@
+/* ==========================================================================
+   Trash view — full-pane replacement for the list/detail area.
+
+   Only values from tokens.css: grounds, hairlines, ink, danger and spacing.
+   Rows mirror the item list's density (glyph tile, 12.5px title, 11.5px meta)
+   but sit on a raised surface so the destructive actions read as a record,
+   not as ordinary vault rows.
+   ========================================================================== */
+
+.trash-view {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--ground);
+}
+
+/* ------------------------------------------------------------------- head */
+
+.trash-head {
+  flex: none;
+  padding: 18px clamp(20px, 2.4vw, 34px) 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--ground);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.trash-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 800px;
+  margin-inline: auto;
+}
+
+.trash-title {
+  font-family: var(--font-ui);
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.trash-count {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  background: var(--sunken);
+  border-radius: var(--r-pill);
+  padding: 1px 6px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.trash-head-spacer {
+  flex: 1;
+}
+
+.trash-note {
+  width: 100%;
+  max-width: 800px;
+  margin-inline: auto;
+  font-size: var(--t-meta);
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+
+/* ------------------------------------------------------------------- body */
+
+.trash-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px clamp(20px, 2.4vw, 34px) 40px;
+}
+
+.trash-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 800px;
+  margin-inline: auto;
+}
+
+.trash-item {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  overflow: hidden;
+}
+
+.trash-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 10px 12px;
+}
+
+.trash-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-2);
+  background: var(--ground);
+  color: var(--ink-2);
+}
+
+.trash-row-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.trash-row-title {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trash-row-meta {
+  font-size: var(--t-meta);
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trash-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}
+
+/* Destructive label without a loud filled button on every row; the danger
+   colour and the inline confirm carry the weight. */
+.trash-purge {
+  color: var(--danger);
+}
+.trash-purge:hover:not(:disabled) {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* -------------------------------------------------------- inline confirm */
+
+.trash-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-top: 1px solid var(--line);
+  background: var(--danger-soft);
+}
+
+.trash-confirm-copy {
+  font-size: var(--t-meta);
+  line-height: 1.55;
+  color: var(--danger);
+  max-width: 560px;
+}
+
+.trash-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ------------------------------------------------------------ states */
+
+.trash-error {
+  max-width: 800px;
+  margin: 0 auto 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: var(--t-meta);
+  line-height: 1.5;
+}
+
+.trash-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 800px;
+  margin-inline: auto;
+}
+.trash-loading .row-skeleton {
+  height: 52px;
+}
+
+.trash-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  max-width: 800px;
+  margin-inline: auto;
+  padding: 40px 0;
+}
+
+.trash-empty-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-3);
+  color: var(--ink-3);
+  background: var(--surface);
+  margin-bottom: 4px;
+}
+
+@media (max-width: 640px) {
+  .trash-row {
+    flex-wrap: wrap;
+  }
+  .trash-row-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

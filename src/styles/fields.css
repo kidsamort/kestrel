@@ -1,0 +1,100 @@
+/* ==========================================================================
+   Field kinds with behaviour: seed phrases, dates and the kind picker.
+
+   Layout lives in app.css; this file only adds what the two new field kinds
+   and the editor's kind column need. Loaded by FieldRows (editor and wizard)
+   and FieldsCard (detail pane), so both surfaces share one set of rules.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------- detail */
+
+/* The label cell carries a word-count chip for a seed phrase, so it may wrap
+   instead of squeezing the label. Two classes beat `.field-row-label` no
+   matter which stylesheet is emitted first. */
+.field-row .field-row-label {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.field-tag {
+  flex: none;
+  padding: 0 5px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--sunken);
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 16px;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.field-tag.is-warn {
+  border-color: color-mix(in srgb, var(--warn) 45%, var(--line));
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+/* A derivation hint sits under the stored value; it never replaces it. */
+.field-row-value .field-hint {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink-3);
+  font-family: var(--font-ui);
+  font-size: var(--t-meta);
+  letter-spacing: 0;
+}
+
+.field-row-value .field-hint.is-expired {
+  color: var(--danger);
+}
+
+/* A seed phrase is one block of words: keep it left-aligned and readable
+   whether it is six bullets or four wrapped lines. */
+.field-row.is-seed .field-row-value {
+  line-height: 1.7;
+}
+
+/* ---------------------------------------------------------------- editor */
+
+/* Four columns: label, value, kind, tools. The tools strip keeps its width so
+   rows with two buttons and rows with three still line up. */
+.field-list .edit-field {
+  grid-template-columns: minmax(88px, 0.6fr) minmax(0, 1.6fr) 118px 82px;
+}
+
+.edit-field-kind {
+  min-width: 0;
+  height: 30px;
+  padding: 0 4px;
+  color: var(--ink-2);
+  font-size: 11.5px;
+}
+
+/* A textarea plus its word count/hint. `grid-column: 2` is what keeps the
+   kind select out of the value's row. */
+.field-value-stack {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.field-value-stack .field-hint {
+  margin: 0;
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+
+.field-value-stack .field-hint.is-warn {
+  color: var(--warn);
+}
+
+@media (max-width: 1080px) {
+  .field-list .edit-field {
+    grid-template-columns: minmax(80px, 0.6fr) minmax(0, 1.4fr) 104px 74px;
+  }
+}

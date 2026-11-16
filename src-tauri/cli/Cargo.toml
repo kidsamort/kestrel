@@ -1,0 +1,17 @@
+[package]
+name = "kestrel-cli"
+version = "0.1.0"
+description = "Command-line client for the Kestrel CLI/SDK named pipe"
+edition = "2021"
+rust-version = "1.90"
+
+[[bin]]
+name = "kestrel-cli"
+path = "src/main.rs"
+
+# Deliberately no `kestrel-core` or `tauri` dependency: the CLI is a pipe
+# client, and a client that could link the vault would be a second path to the
+# secrets. The only shared contract is the JSON protocol.
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

@@ -1,0 +1,25 @@
+node_modules/
+dist/
+src-tauri/target/
+src-tauri/gen/
+*.log
+.DS_Store
+artifacts/
+coverage/
+
+# Local state that must never be published: a vault file, its WAL sidecars, the
+# bridge token and any environment file.
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.token
+.env
+.env.*
+*.pem
+*.key
+
+# Working notes: the plan and the agent rules are for this checkout only.
+AGENTS.md
+PLAN.md

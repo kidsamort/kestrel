@@ -1,0 +1,131 @@
+/* ==========================================================================
+   Settings → SSH agent card (DESIGN.md §6, item 22).
+
+   The card reports a pipe that either exists or does not; it has no toggle and
+   no "connected" animation. The only bespoke pieces here are the state pill,
+   the monospace pipe path and the copy-paste command blocks — everything else
+   comes from app.css `.card` / `.setting-row` primitives.
+   ========================================================================== */
+
+.agent-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  font-size: var(--t-meta);
+  font-weight: 500;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.agent-state.is-on {
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--line));
+  background: var(--ok-soft);
+}
+
+.agent-state.is-off {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--line));
+  background: var(--danger-soft);
+}
+
+.agent-pipe,
+.agent-code code {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.agent-pipe {
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--sunken);
+  align-self: flex-start;
+}
+
+.agent-count {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink-2);
+  min-width: 2ch;
+  text-align: right;
+}
+
+.agent-skipped {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.agent-skipped ul {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--t-meta);
+  color: var(--ink-2);
+}
+
+.agent-skipped strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.agent-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.agent-copy-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.agent-copy-title svg {
+  color: var(--ink-3);
+}
+
+.agent-copy p {
+  margin: 0;
+}
+
+.agent-code {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--sunken);
+  overflow-x: auto;
+}
+
+.agent-code code {
+  display: block;
+  color: var(--ink);
+  user-select: text;
+}
+
+.agent-error {
+  margin: 0;
+  font-size: var(--t-meta);
+  color: var(--danger);
+}

@@ -1,0 +1,307 @@
+/* Item history rail — read-only version list and comparison. */
+
+/* A drawer over the detail pane, not a third column: opening history must not
+   squeeze the item being read. */
+.history-rail {
+  position: absolute;
+  inset: 0 0 0 auto;
+  z-index: 5;
+  width: 340px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  border-left: 1px solid var(--line-strong);
+  background: var(--surface);
+  box-shadow: -20px 0 36px rgb(0 0 0 / 32%);
+}
+
+.history-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding: 12px var(--s-5);
+  border-bottom: 1px solid var(--line);
+}
+
+.history-title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.history-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  padding: var(--s-4) var(--s-4) var(--s-6);
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.history-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  width: 100%;
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid transparent;
+  border-radius: var(--r-2);
+  background: transparent;
+  text-align: left;
+  transition:
+    background var(--dur-1) var(--ease-out),
+    border-color var(--dur-1) var(--ease-out);
+}
+
+.history-row:hover {
+  background: var(--hover);
+}
+
+.history-row.is-active {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+}
+
+.history-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.history-row-title {
+  font-size: var(--t-body);
+  font-weight: 500;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-row-meta {
+  font-size: var(--t-micro);
+  color: var(--ink-3);
+}
+
+.history-badge {
+  flex: none;
+  padding: 1px 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-2);
+  background: var(--surface);
+}
+
+.history-badge-current {
+  border-color: var(--accent-line);
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-family: var(--font-ui);
+}
+
+.history-loading,
+.history-hint,
+.history-empty {
+  padding: var(--s-2) var(--s-4);
+  font-size: var(--t-meta);
+  line-height: 1.55;
+  color: var(--ink-3);
+}
+
+.history-empty {
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-2);
+  text-align: center;
+  padding: var(--s-5) var(--s-4);
+}
+
+.history-error {
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-2);
+  font-size: var(--t-meta);
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.history-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: 0 var(--s-2);
+}
+
+.history-preview-title {
+  font-size: var(--t-title);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  padding: var(--s-2) var(--s-3);
+  border-left: 2px solid transparent;
+  border-radius: var(--r-1);
+}
+
+.history-preview-title.is-changed {
+  border-left-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.history-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.history-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--s-2) var(--s-3);
+  border-left: 2px solid transparent;
+  border-radius: var(--r-1);
+}
+
+.history-field.is-changed {
+  border-left-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.history-field-label,
+.history-empty-note {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: var(--t-micro);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+
+.history-empty-note {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--t-meta);
+  padding: 0 var(--s-3);
+}
+
+.history-changed-mark {
+  padding: 0 5px;
+  border-radius: var(--r-pill);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--surface);
+  border: 1px solid var(--accent-line);
+}
+
+.history-field-value-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+.history-field-value {
+  font-size: var(--t-value);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.history-field-value.is-mono {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+
+.history-field-value.is-empty {
+  color: var(--ink-3);
+  font-style: italic;
+}
+
+.history-reveal {
+  flex: none;
+}
+
+.history-notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  border-left: 2px solid transparent;
+  border-radius: var(--r-1);
+}
+
+.history-notes.is-changed {
+  border-left-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.history-notes-text {
+  font-size: var(--t-meta);
+  line-height: 1.55;
+  color: var(--ink-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.history-foot {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border-top: 1px solid var(--line);
+  background: var(--ground);
+}
+
+.history-foot-note {
+  font-size: var(--t-micro);
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+
+.history-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.history-confirm-copy {
+  font-size: var(--t-meta);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.history-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+@media (max-width: 1100px) {
+  .history-rail {
+    width: 300px;
+  }
+}

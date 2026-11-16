@@ -1,0 +1,58 @@
+# One service, one volume. The build context is the repository root because the
+# sync crate is a member of the desktop workspace.
+#
+#   docker compose -f deploy/docker-compose.yml up -d --build
+#
+# This publishes the service on loopback only. That is the correct shape when
+# TLS is terminated on the host (Caddy, nginx, Traefik) in front of
+# 127.0.0.1:8787. If the proxy is another service in this compose file, delete
+# the `ports:` block and point the proxy at `http://kestrel-sync:8787` instead.
+#
+# Reverse-proxy note (Caddy, on the host):
+#
+#   sync.example.com {
+#       reverse_proxy 127.0.0.1:8787
+#       request_body {
+#           max_size 4MB
+#       }
+#   }
+#
+# Keep `max_size` at or below KESTREL_SYNC_MAX_BODY so an oversized body is
+# refused by the proxy before it reaches the service. Do not rewrite paths: the
+# request signature covers the exact request target.
+name: kestrel-sync
+
+services:
+  kestrel-sync:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: kestrel-sync:0.1
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8787:8787"
+    environment:
+      KESTREL_SYNC_ADDR: "0.0.0.0:8787"
+      KESTREL_SYNC_DB: "/data/kestrel-sync.db"
+      KESTREL_SYNC_BLOBS: "/data/blobs"
+      # 4 MiB: enough for one large item, small enough that a hostile body is
+      # cheap to reject. Raise it only if the client's largest item needs it.
+      KESTREL_SYNC_MAX_BODY: "4194304"
+      # 0 = unlimited. A public instance should set a real cap.
+      KESTREL_SYNC_MAX_ACCOUNTS: "0"
+    volumes:
+      - kestrel-sync-data:/data
+    # The image needs no writable root filesystem: SQLite and the blobs live on
+    # the volume, and nothing else is written.
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  # Pinned so the backup/restore commands in README.md and PROTOCOL.md name the
+  # same volume Compose creates. Without `name:`, Compose would prefix it with
+  # the project name.
+  kestrel-sync-data:
+    name: kestrel-sync-data

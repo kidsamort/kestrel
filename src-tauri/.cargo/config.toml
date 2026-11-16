@@ -1,0 +1,10 @@
+# The harness/WinLibs GNU toolchain needs the mingw runtime linked statically,
+# otherwise test and app binaries fail with STATUS_ENTRYPOINT_NOT_FOUND.
+[build]
+rustflags = ["-C", "target-feature=+crt-static"]
+
+[target.x86_64-pc-windows-gnu]
+rustflags = ["-C", "target-feature=+crt-static"]
+
+[net]
+retry = 3

@@ -1,0 +1,20 @@
+[package]
+name = "kestrel-passkey"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+description = "WebAuthn credential engine and the Windows plugin surface for Kestrel"
+
+[lib]
+# `rlib` is what the shell links to encode/decode CTAP2; `cdylib` is the
+# in-process COM server Windows loads as the WebAuthn plugin.
+crate-type = ["rlib", "cdylib"]
+
+[dependencies]
+# ES256 over NIST P-256. Default features bring the RustCrypto signer/verifier
+# and SHA-256; no C or OpenSSL is involved.
+p256 = "0.13"
+sha2 = "0.10"
+rand = "0.8"
+zeroize = { version = "1", features = ["derive"] }
+thiserror = "1"

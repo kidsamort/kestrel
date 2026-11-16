@@ -1,0 +1,23 @@
+[package]
+name = "kestrel-engine"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+description = "The sync engine: pulls, merges and pushes a vault"
+
+[dependencies]
+# The engine is the only crate that holds both halves at once: the vault (core)
+# and the wire (net). It decides what to send and what a returned operation
+# means; neither of its dependencies knows about the other.
+kestrel-core = { path = "../core" }
+kestrel-net = { path = "../net" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+
+[dev-dependencies]
+# The integration tests drive the real service over a real socket, the same way
+# the net crate's tests do.
+kestrel-sync = { path = "../sync" }
+tokio = { version = "1", features = ["rt-multi-thread", "net", "sync", "time"] }
+tempfile = "3"

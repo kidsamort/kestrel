@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Kestrel bridge",
+  "version": "0.1.0",
+  "description": "Shows Kestrel logins on a login form and fills them only after you confirm the item and origin.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuQco2GGnE9Qus/Fnrjk/69nUVw+nZ3onMQ+lT4ZNDtOPWOZfgxRlN1ydRWik/9NIXiUDB4nzXGOHrJfSHQzxGD/uE4QBve1R8cfDGHcBhWMlu2TCYMJl6PuWhq6So0F10NPQi5Dr694b2fN2fgMMxcN67uqnjBcfQJGakh4kyL7ZKzM8mxZ9jsMHhbg4weUVk4OWr3T0wrQtqeSwt9OVVXrYYsWjHfcnFZSmjr24RTykNb9j0tFIX9UL+ocW8RGzSOGN786Ae3eESkXG4qptbxCscTiiNXgJzVkj5k+2frHkkNd7R5JytwzezvzStx12RNCZZQ8suKdp1J8Al5H8EwIDAQAB",
+  "permissions": [
+    "nativeMessaging"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "bridge@kestrel",
+      "strict_min_version": "109.0"
+    }
+  }
+}

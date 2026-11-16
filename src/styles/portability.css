@@ -1,0 +1,299 @@
+/* ==========================================================================
+   Move data — import / export card (Settings).
+
+   Uses only the tokens from tokens.css. Import is a three-step flow (choose a
+   file, preview the first rows, sealed report); export is a single form with an
+   explicit plaintext warning.
+   ========================================================================== */
+
+.mv-card {
+  gap: 14px;
+}
+
+.mv-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.mv-card > .mv-block:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.mv-block-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.mv-block-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* Steps --------------------------------------------------------------- */
+
+.mv-steps {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.mv-steps li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.mv-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  line-height: 1;
+  color: var(--ink-3);
+}
+.mv-steps li.is-active {
+  color: var(--ink);
+}
+.mv-steps li.is-active .mv-step-num {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.mv-steps li.is-done {
+  color: var(--ok);
+}
+.mv-steps li.is-done .mv-step-num {
+  border-color: var(--ok);
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+/* File picker --------------------------------------------------------- */
+
+.mv-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.mv-file {
+  flex: 1 1 140px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--t-meta);
+  color: var(--ink-3);
+}
+.mv-file-input {
+  display: none;
+}
+.mv-format {
+  margin-left: auto;
+}
+.mv-format-label {
+  padding-left: 2px;
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* Preview table ------------------------------------------------------- */
+
+.mv-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mv-preview-total {
+  font-size: var(--t-meta);
+  color: var(--ink-3);
+}
+.mv-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: var(--t-meta);
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  overflow: hidden;
+}
+.mv-table th {
+  padding: 6px 10px;
+  text-align: left;
+  font-size: var(--t-micro);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  background: var(--sunken);
+}
+.mv-table td {
+  padding: 7px 10px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mv-table td:first-child {
+  color: var(--ink);
+}
+.mv-table th.mv-num,
+.mv-table td.mv-num {
+  width: 64px;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  color: var(--ink-3);
+}
+.mv-empty {
+  font-size: var(--t-meta);
+  color: var(--ink-3);
+}
+.mv-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Report -------------------------------------------------------------- */
+
+.mv-report {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-3);
+  background: var(--surface);
+}
+.mv-report-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--t-meta);
+  color: var(--ok);
+}
+.mv-report.is-partial .mv-report-head {
+  color: var(--warn);
+}
+.mv-report-head strong {
+  font-weight: 600;
+}
+.mv-report-counts {
+  display: flex;
+  gap: 22px;
+  margin: 0;
+}
+.mv-report-counts div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mv-report-counts dt {
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.mv-report-counts dd {
+  margin: 0;
+  font-size: var(--t-title);
+  font-weight: 600;
+  color: var(--ink);
+}
+.mv-report-counts .is-bad dd {
+  color: var(--danger);
+}
+.mv-failures {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 168px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  font-size: var(--t-meta);
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+.mv-failures .mono {
+  margin-right: 6px;
+  font-size: var(--t-micro);
+  color: var(--ink-3);
+}
+
+/* Export -------------------------------------------------------------- */
+
+.mv-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 11px;
+  border-radius: var(--r-2);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: var(--t-meta);
+  line-height: 1.5;
+}
+.mv-warning svg {
+  flex: none;
+  margin-top: 1px;
+}
+.mv-warning strong {
+  font-weight: 600;
+}
+.mv-export-grid {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+.mv-export-format {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.mv-export-format .select-shell {
+  width: 100%;
+}
+.mv-export-format .select {
+  flex: 1;
+  min-width: 0;
+}
+.mv-hint {
+  font-size: var(--t-micro);
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+
+@media (max-width: 560px) {
+  .mv-export-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .mv-format {
+    margin-left: 0;
+  }
+}

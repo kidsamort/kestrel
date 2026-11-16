@@ -1,0 +1,187 @@
+/* ==========================================================================
+   Passkeys: the login block and the Settings card (DESIGN.md §6, item 21).
+
+   The block lists public metadata only, so a row can be plain text and a
+   confirm pair; the card reports registry state, so its bespoke pieces are the
+   state pill and the monospace paths. Everything else comes from app.css
+   `.card`, `.block`, `.setting-row` and `.btn` primitives.
+   ========================================================================== */
+
+.passkeys-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  font-size: var(--t-meta);
+  font-weight: 500;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.passkeys-state.is-on {
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 45%, var(--line));
+  background: var(--ok-soft);
+}
+
+.passkeys-state.is-off {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--line));
+  background: var(--danger-soft);
+}
+
+.passkeys-path {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 46ch;
+  text-align: right;
+}
+
+.passkeys-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  margin-top: 12px;
+}
+
+.passkeys-note {
+  margin-top: 12px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--sunken);
+  font-size: var(--t-meta);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+.passkeys-note strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.passkeys-note code,
+.passkeys-id {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
+
+.passkeys-error {
+  margin: 10px 0 0;
+  font-size: var(--t-meta);
+  color: var(--danger);
+  overflow-wrap: anywhere;
+}
+
+/* --- item block ---------------------------------------------------------- */
+
+.passkeys-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.passkeys-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.passkeys-row:last-child {
+  border-bottom: 0;
+}
+
+.passkeys-glyph {
+  display: inline-flex;
+  color: var(--ink-3);
+}
+
+.passkeys-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.passkeys-rp {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.passkeys-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: var(--t-meta);
+  color: var(--ink-3);
+}
+
+.passkeys-id {
+  color: var(--ink-2);
+  background: var(--sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  padding: 0 4px;
+}
+
+.passkeys-confirm {
+  display: inline-flex;
+  gap: 6px;
+}
+
+/* ------------------------------------------------------- approval bar */
+
+/* The presence gate. It sits above the shell so it is visible whatever panel
+   is open — a signature request must not be answerable only from Settings. */
+.passkey-approval {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(680px, calc(100vw - 32px));
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  background: var(--surface);
+  box-shadow: var(--shadow-3);
+  color: var(--ink-1);
+}
+
+.passkey-approval-copy {
+  min-width: 0;
+}
+
+.passkey-approval-title {
+  font-size: var(--t-body);
+  font-weight: 600;
+}
+
+.passkey-approval-body {
+  font-size: var(--t-small);
+  color: var(--ink-2);
+}
+
+.passkey-approval-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  flex: none;
+}

@@ -242,11 +242,13 @@ code {
 }
 
 .btn-sm {
-  height: 28px;
+  /* The compact control height: a small button and a compact input share a row. */
+  height: var(--control-h-sm);
   padding: 0 10px;
 }
 .btn-md {
-  height: 32px;
+  /* The row height: a button beside an input or a select is the same height. */
+  height: var(--control-h);
   padding: 0 13px;
 }
 .btn-lg {
@@ -263,8 +265,8 @@ code {
   padding: 0;
 }
 .btn-sm.btn-icon {
-  width: 28px;
-  height: 28px;
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
 }
 
 .btn-primary {
@@ -449,11 +451,12 @@ code {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 17px;
-  height: 17px;
-  padding: 0 4px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
   border: 1px solid var(--line-strong);
-  border-radius: var(--r-1);
+  border-bottom-width: 2px;
+  border-radius: 4px;
   background: var(--surface);
   font-family: var(--font-ui);
   font-size: 10px;

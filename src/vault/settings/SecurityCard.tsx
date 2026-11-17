@@ -249,7 +249,7 @@ export default function SecurityCard({
         {hello?.enrolled ? (
           <Button
             variant="secondary"
-            size="sm"
+            size="md"
             disabled={helloBusy}
             leading={<Lock size={13} aria-hidden />}
             onClick={() => void disableHello()}
@@ -259,7 +259,7 @@ export default function SecurityCard({
         ) : (
           <Button
             variant="secondary"
-            size="sm"
+            size="md"
             disabled={helloBusy || hello === null || !hello.available}
             leading={<ScanFace size={13} aria-hidden />}
             onClick={() => void enableHello()}
@@ -278,7 +278,7 @@ export default function SecurityCard({
         </div>
         <Button
           variant="secondary"
-          size="sm"
+          size="md"
           leading={<Lock size={13} aria-hidden />}
           onClick={onLock}
         >

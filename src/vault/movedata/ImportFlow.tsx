@@ -133,7 +133,7 @@ export default function ImportFlow({
       <div className="mv-row">
         <Button
           variant="secondary"
-          size="sm"
+          size="md"
           leading={<FileUp size={13} aria-hidden />}
           disabled={busy !== null}
           onClick={() => inputRef.current?.click()}

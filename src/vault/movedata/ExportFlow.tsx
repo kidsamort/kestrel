@@ -127,7 +127,7 @@ export default function ExportFlow({
         <Button
           type="submit"
           variant="primary"
-          size="sm"
+          size="md"
           leading={<Download size={13} aria-hidden />}
           disabled={busy || !password}
         >

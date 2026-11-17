@@ -157,7 +157,7 @@ export default function BrowserCard({ state }: { state: VaultState }) {
         <div className="browser-actions">
           <Button
             variant={installed ? "secondary" : "primary"}
-            size="sm"
+            size="md"
             disabled={busy || state.locked}
             onClick={() => {
               void run(() => browser.install());
@@ -167,7 +167,7 @@ export default function BrowserCard({ state }: { state: VaultState }) {
           </Button>
           <Button
             variant="quiet"
-            size="sm"
+            size="md"
             disabled={busy || !installed}
             onClick={() => {
               void run(() => browser.uninstall());
@@ -258,7 +258,7 @@ export default function BrowserCard({ state }: { state: VaultState }) {
               </div>
               <Button
                 variant="quiet"
-                size="sm"
+                size="md"
                 iconOnly
                 label={`Delete the rule for ${rule.origin}`}
                 disabled={busy}
@@ -310,7 +310,7 @@ export default function BrowserCard({ state }: { state: VaultState }) {
         <Button
           type="submit"
           variant="secondary"
-          size="sm"
+          size="md"
           disabled={busy || !origin.trim()}
         >
           Add rule

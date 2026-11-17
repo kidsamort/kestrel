@@ -108,8 +108,14 @@
 }
 .mv-format {
   margin-left: auto;
+  /* The label is a prefix, not a second row: stacked, it pushed the select
+     below the button and the file name it shares the row with. */
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
 }
 .mv-format-label {
+  flex: none;
   padding-left: 2px;
   font-size: var(--t-micro);
   letter-spacing: 0.06em;
@@ -273,7 +279,7 @@
 .mv-export-format {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--s-2);
   min-width: 0;
 }
 .mv-export-format .select-shell {

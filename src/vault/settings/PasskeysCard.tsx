@@ -184,18 +184,15 @@ export default function PasskeysCard() {
       <div className="passkeys-note" role="note">
         <strong>What is verified here.</strong> The CLSID points at the built
         DLL, the pipe serves this user, and Windows answered{" "}
-        <code>WebAuthNPluginAddAuthenticator</code>. <strong>What is not.</strong>{" "}
-        On this machine that call fails with <code>0x80090027</code>{" "}
-        (NTE_INVALID_PARAMETER), so Windows does not route passkeys to Kestrel
-        yet. Two candidates, neither proven: the class is registered per user and
-        the WebAuthn broker may not see an HKCU registration — a machine-wide one
-        needs an elevated step this build does not perform — or the CBOR{" "}
-        <code>authenticatorGetInfo</code> payload is wrong. Assertions are gated in the app: every
-        signature waits for an explicit Approve, and only then is presence
-        reported. That is presence, not verification — no PIN or biometric check
-        (<code>uv: false</code>), no verification of Windows&apos; per-request
-        signature, and no browser ceremony: that needs a signed binary and a real
-        user gesture.
+        <code>WebAuthNPluginAddAuthenticator</code>. <strong>What blocks it.</strong>{" "}
+        Windows requires <em>package identity</em> for plugin authenticators: an
+        unpackaged process is refused with <code>0x80073D54</code> (no package
+        identity) before any credential is touched. Kestrel therefore has to run
+        from an MSIX or a sparse package before Windows routes passkeys to it.
+        Assertions are gated in the app: every signature waits for an explicit
+        Approve, and only then is presence reported. That is presence, not
+        verification — no PIN or biometric check (<code>uv: false</code>) and no
+        verification of Windows&apos; per-request signature.
       </div>
     </section>
   );

@@ -79,6 +79,13 @@ const INPROC_KEY: &str = r"Software\Classes\CLSID\{6B9A7C4E-1F2D-4E83-9B6A-3C5D7
 /// shipped the same functions in `webauthn.dll`, so both are tried.
 const PLUGIN_DLLS: [&str; 2] = ["webauthnplugin.dll", "webauthn.dll"];
 
+/// The plugin's own relying-party id, passed as `pwszPluginRpId`. The header
+/// calls it optional, but Windows 11 rejects a null value with
+/// `NTE_INVALID_PARAMETER` before it looks at anything else: measured on
+/// 10.0.28000, null -> 0x80090027, this value -> 0x80073D54 (no package
+/// identity, the next real gate).
+pub const PLUGIN_RP_ID: &str = "kestrel.local";
+
 #[derive(Debug, thiserror::Error)]
 pub enum RegistryError {
     #[error("registry call failed (Windows code {0})")]
@@ -416,11 +423,12 @@ impl PluginApi {
     fn add_authenticator(&self) -> i32 {
         let clsid = plugin_clsid();
         let name = wide("Kestrel");
+        let rp_id = wide(PLUGIN_RP_ID);
         let info = crate::webauthn::authenticator_get_info();
         let options = AddAuthenticatorOptions {
             authenticator_name: name.as_ptr(),
             clsid: &clsid,
-            plugin_rp_id: std::ptr::null(),
+            plugin_rp_id: rp_id.as_ptr(),
             light_logo_svg: std::ptr::null(),
             dark_logo_svg: std::ptr::null(),
             authenticator_info_len: info.len() as u32,
@@ -461,6 +469,24 @@ pub struct WindowsRegistration {
     pub error: Option<String>,
 }
 
+/// What a failed add actually means, in words. The raw HRESULT is kept beside
+/// it: a code nobody can look up is not an error message.
+pub fn explain(hresult: i32) -> Option<&'static str> {
+    match hresult as u32 {
+        0x8009_0027 => Some(
+            "Windows rejected the call before reading it: the plugin RP id or the \
+             options struct was wrong",
+        ),
+        0x8007_3D54 => Some(
+            "Windows requires package identity for plugin authenticators: Kestrel \
+             must run from an MSIX (or a sparse package) before Windows will route \
+             passkeys to it",
+        ),
+        0x8009_0011 => Some("Windows does not know this authenticator: add it first"),
+        _ => None,
+    }
+}
+
 /// Call `WebAuthNPluginAddAuthenticator`, then read the state back.
 pub fn add_to_windows() -> WindowsRegistration {
     match PluginApi::load() {
@@ -470,7 +496,11 @@ pub fn add_to_windows() -> WindowsRegistration {
             WindowsRegistration {
                 hresult: Some(hresult),
                 state,
-                error: None,
+                error: if hresult == 0 {
+                    None
+                } else {
+                    explain(hresult).map(str::to_string)
+                },
             }
         }
         Err(error) => WindowsRegistration {

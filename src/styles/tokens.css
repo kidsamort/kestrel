@@ -47,6 +47,10 @@
   --scroll-thumb-hover: rgb(18 21 26 / 0.32);
 
   /* Focus: derived from the active accent, with a 1px ground gap. */
+  /* Control heights: a select, an input and a button on one row must be the
+     same height, or the row looks assembled from parts. */
+  --control-h: 34px;
+  --control-h-sm: 30px;
   --focus-ring: 0 0 0 1px var(--ground), 0 0 0 3px var(--accent);
   --focus-inset: inset 0 0 0 2px var(--accent);
 

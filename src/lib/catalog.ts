@@ -172,6 +172,8 @@ export const FIELD_KINDS: { id: string; label: string }[] = [
   { id: "text", label: "Text" },
   { id: "username", label: "Username" },
   { id: "url", label: "URL" },
+  { id: "host", label: "IP / host" },
+  { id: "port", label: "Port" },
   { id: "password", label: "Password" },
   { id: "apiSecret", label: "API secret" },
   { id: "seedPhrase", label: "Seed phrase" },

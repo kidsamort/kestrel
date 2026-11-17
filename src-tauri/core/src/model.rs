@@ -116,13 +116,14 @@ impl Category {
                 f("fingerprint", "text", false),
             ],
             Category::Server => vec![
-                f("hostname", "url", false),
+                f("hostname", "host", false),
+                f("port", "port", false),
                 f("username", "username", false),
                 f("password", "password", true),
             ],
             Category::Database => vec![
-                f("hostname", "url", false),
-                f("port", "text", false),
+                f("hostname", "host", false),
+                f("port", "port", false),
                 f("database", "text", false),
                 f("username", "username", false),
                 f("password", "password", true),

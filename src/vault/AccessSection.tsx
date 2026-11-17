@@ -49,6 +49,13 @@ export default function AccessSection({
   const [openAudit, setOpenAudit] = useState(false);
 
   const reload = useCallback(() => {
+    // A draft has no row yet: asking the core for its grants would answer
+    // "no longer in the vault", which is true and useless. The panel already
+    // tells the person to save first.
+    if (disabled) {
+      setLoading(false);
+      return () => {};
+    }
     let live = true;
     setLoading(true);
     Promise.all([access.itemGrants(item.id), access.itemAudit(item.id)])
@@ -67,7 +74,7 @@ export default function AccessSection({
     return () => {
       live = false;
     };
-  }, [item.id]);
+  }, [item.id, disabled]);
 
   useEffect(() => reload(), [reload, item.updatedAt]);
 

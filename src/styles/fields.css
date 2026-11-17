@@ -67,10 +67,15 @@
 
 .edit-field-kind {
   min-width: 0;
-  height: 30px;
-  padding: 0 4px;
+  padding: 0 6px;
   color: var(--ink-2);
-  font-size: 11.5px;
+  font-size: var(--t-meta);
+}
+
+/* The kind picker sits in a compact row, so it takes the compact height; the
+   base `.select-button` rule is for full-size rows. */
+.edit-field .select-button {
+  height: var(--control-h-sm);
 }
 
 /* A textarea plus its word count/hint. `grid-column: 2` is what keeps the

@@ -2291,7 +2291,7 @@ fieldset.edit-block {
   align-items: start;
 }
 .edit-field .input {
-  height: 30px;
+  height: var(--control-h-sm);
   padding: 0 8px;
   border: 1px solid var(--line-strong);
   border-radius: var(--r-2);
@@ -2325,7 +2325,7 @@ fieldset.edit-block {
   align-items: center;
   justify-content: flex-end;
   gap: 1px;
-  height: 30px;
+  height: var(--control-h-sm);
 }
 .add-field {
   display: flex;
@@ -4011,9 +4011,9 @@ fieldset.edit-block {
   gap: 8px;
   min-width: 0;
   max-width: 100%;
-  /* The same 34px an input shell occupies, so a select and a text field on one
-     row are one row. */
-  height: 32px;
+  /* The same height an input shell occupies, so a select and a text field on
+     one row are one row. */
+  height: var(--control-h);
   padding: 0 8px 0 10px;
   border: 1px solid var(--line-strong);
   border-radius: var(--r-2);
@@ -4036,7 +4036,8 @@ fieldset.edit-block {
 .select-shell .select-button {
   border: 0;
   background: transparent;
-  height: 30px;
+  /* The shell draws the 1px border; the button fills what is left. */
+  height: calc(var(--control-h) - 2px);
 }
 .select-shell .select-button:focus-visible {
   box-shadow: none;
@@ -4061,7 +4062,9 @@ fieldset.edit-block {
   z-index: 40;
   top: calc(100% + 4px);
   left: 0;
+  width: max-content;
   min-width: 100%;
+  max-width: 340px;
   max-height: 260px;
   overflow-y: auto;
   padding: 4px;
@@ -4075,7 +4078,8 @@ fieldset.edit-block {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
-  padding: 6px 8px;
+  min-height: var(--control-h-sm);
+  padding: 5px 10px;
   border-radius: var(--r-1, 4px);
   font-size: var(--t-meta);
   color: var(--ink-2);
@@ -4091,8 +4095,6 @@ fieldset.edit-block {
 }
 .select-option-label {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 .select-option-hint {

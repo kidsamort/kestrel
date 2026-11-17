@@ -25,6 +25,13 @@ function hresult(value: number | null): string {
   return `0x${(value >>> 0).toString(16).padStart(8, "0")}`;
 }
 
+function registeredWithWindows(status: PasskeyStatus | null): boolean {
+  // 0x8009000F is NTE_EXISTS: the authenticator is already there, which is the
+  // outcome we want. 0 is S_OK on the first add.
+  const code = status?.windowsHresult;
+  return code === 0 || code === -2146893809;
+}
+
 function windowsLabel(status: PasskeyStatus): string {
   if (status.windowsError) return "Unavailable";
   if (status.windowsState === 1) return "Enabled";
@@ -184,15 +191,23 @@ export default function PasskeysCard() {
       <div className="passkeys-note" role="note">
         <strong>What is verified here.</strong> The CLSID points at the built
         DLL, the pipe serves this user, and Windows answered{" "}
-        <code>WebAuthNPluginAddAuthenticator</code>. <strong>What blocks it.</strong>{" "}
-        Windows requires <em>package identity</em> for plugin authenticators: an
-        unpackaged process is refused with <code>0x80073D54</code> (no package
-        identity) before any credential is touched. Kestrel therefore has to run
-        from an MSIX or a sparse package before Windows routes passkeys to it.
-        Assertions are gated in the app: every signature waits for an explicit
-        Approve, and only then is presence reported. That is presence, not
-        verification — no PIN or biometric check (<code>uv: false</code>) and no
-        verification of Windows&apos; per-request signature.
+        <code>WebAuthNPluginAddAuthenticator</code>
+        {status?.windowsHresult === null
+          ? "."
+          : registeredWithWindows(status)
+            ? " with success."
+            : ` with ${hresult(status?.windowsHresult ?? null)}.`}{" "}
+        <strong>Where it stands.</strong>{" "}
+        {registeredWithWindows(status) && status?.windowsState === 1
+          ? "Kestrel is an enabled passkey provider on this device: Windows will offer it when a site asks for a passkey, and every signature waits for an explicit Approve here."
+          : registeredWithWindows(status)
+            ? "Windows accepted the provider but it is switched off: turn Kestrel on in Settings → Accounts → Passkeys → Advanced."
+            : status?.windowsHresult === -2147009196
+              ? "Windows refuses plugin authenticators from an unpackaged process. Run the packaged build (deploy/msix) so the app has package identity."
+              : "Registration did not succeed; the code above is what Windows answered."}{" "}
+        Assertions stay gated in the app: presence, not verification — no PIN or
+        biometric check (<code>uv: false</code>) and no verification of
+        Windows&apos; per-request signature.
       </div>
     </section>
   );

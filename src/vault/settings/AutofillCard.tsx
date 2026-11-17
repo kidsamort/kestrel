@@ -7,7 +7,7 @@
  * executable would be a lie about what was inspected.
  */
 import { useCallback, useEffect, useState } from "react";
-import { AppWindow, CircleAlert, Keyboard, Trash2 } from "lucide-react";
+import { AppWindow, CircleAlert, Trash2 } from "lucide-react";
 import { errorText } from "../../api";
 import {
   autofill,
@@ -19,7 +19,6 @@ import { Button } from "../../ui/Button";
 import { useSettingsStatus } from "../../lib/settings-status";
 import Select from "../../ui/Select";
 import { Switch } from "../../ui/Switch";
-import { Keycap } from "../../ui/Keycap";
 import { ChordInput } from "../../ui/ChordInput";
 import "../../styles/autofill.css";
 
@@ -127,13 +126,11 @@ export default function AutofillCard() {
           <span>Offer shortcut</span>
           <span className="setting-hint">
             {status?.registered
-              ? `${status.shortcut} offers the picker for the focused field, whatever the app's rule is — except "Never".`
+              ? "This chord offers the picker for the focused field, whatever the app's rule is — except \"Never\"."
               : "The system chord is taken by another application, so focus offers are the only way in."}
           </span>
         </div>
         <span className="setting-value">
-          <Keyboard size={12} aria-hidden />
-          <Keycap chord={status?.shortcut ?? "Ctrl+Shift+F"} />
           <ChordInput
             value={status?.shortcut ?? "Ctrl+Shift+F"}
             label="Offer shortcut"

@@ -9,7 +9,6 @@ import { useSettingsStatus } from "../../lib/settings-status";
 import { quick as quickApi, type QuickStatus } from "../../lib/api-quick";
 import { Button } from "../../ui/Button";
 import { Switch } from "../../ui/Switch";
-import { Keycap } from "../../ui/Keycap";
 import { ChordInput } from "../../ui/ChordInput";
 import { useNotify } from "../../ui/Toast";
 
@@ -88,19 +87,16 @@ export default function QuickAccessCard() {
             {!quickStatus?.enabled
               ? "Off. The palette is still one click away below."
               : quickStatus.registered
-                ? `${quickStatus.shortcut} opens a 420 px search window from anywhere.`
+                ? "This chord opens a 420 px search window from anywhere."
                 : "The system chord is taken by another app, so the palette is opened from here."}
           </span>
         </div>
-        <span className="setting-value">
-          <Keycap chord={quickStatus?.shortcut ?? "Ctrl+Shift+Space"} />
-          <ChordInput
-            value={quickStatus?.shortcut ?? "Ctrl+Shift+Space"}
-            label="Palette shortcut"
-            disabled={busy || !quickStatus?.enabled}
-            onChange={(chord) => void setShortcut(chord)}
-          />
-        </span>
+        <ChordInput
+          value={quickStatus?.shortcut ?? "Ctrl+Shift+Space"}
+          label="Palette shortcut"
+          disabled={busy || !quickStatus?.enabled}
+          onChange={(chord) => void setShortcut(chord)}
+        />
       </div>
       {quickStatus?.enabled && !quickStatus.registered && quickStatus.error ? (
         <p className="setting-hint" role="status">

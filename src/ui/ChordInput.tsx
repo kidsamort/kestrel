@@ -1,18 +1,18 @@
 /**
- * A field that records a chord.
+ * The chord control: the keys themselves, and the field that records a new one.
  *
- * The person presses the combination they want and the field turns it into the
- * same string the backend registers (`Ctrl+Shift+Space`). Rules that keep the
- * result usable:
+ * A chord is shown as keys — `Ctrl` `Shift` `Space` — because that is what the
+ * person is being asked to press. The same element records a replacement: click
+ * it and the next combination you press becomes the chord. There is no separate
+ * text field, so nothing can disagree with what is registered.
+ *
+ * Rules that keep the result usable:
  *
  * - a chord needs at least one modifier plus one real key; `Shift` alone is not
  *   a shortcut, and neither is `A`;
- * - `Escape` cancels the capture and restores the previous value, so a stray
- *   key never silently rebinds a system-wide hotkey;
- * - `Backspace`/`Delete` on an empty capture clears back to the default.
- *
- * The component owns no policy: the caller decides what to do with the string
- * and whether the change is allowed.
+ * - `Escape` cancels the capture and keeps the previous chord;
+ * - the backend releases the old chord before binding the new one, so a failed
+ *   rebind leaves the previous value, not an empty one.
  */
 import { useEffect, useRef, useState } from "react";
 
@@ -65,6 +65,23 @@ export function chordFrom(event: KeyboardEvent): string | null {
   return [...ORDER.filter((name) => pressed.includes(name)), key].join("+");
 }
 
+/** The keys of one chord, as the boxes a keyboard would have. */
+function Keys({ chord }: { chord: string }) {
+  const keys = chord
+    .split("+")
+    .map((key) => key.trim())
+    .filter(Boolean);
+  return (
+    <span className="keycap-chord">
+      {keys.map((key, index) => (
+        <kbd className="keycap" key={`${key}-${index}`}>
+          {key}
+        </kbd>
+      ))}
+    </span>
+  );
+}
+
 export function ChordInput({
   value,
   onChange,
@@ -95,10 +112,6 @@ export function ChordInput({
         setDraft(value);
         return;
       }
-      if (event.key === "Backspace" || event.key === "Delete") {
-        setDraft("");
-        return;
-      }
       if (MODIFIER_KEYS[event.key] === true) {
         // Show the modifier while it is held, but never commit it alone.
         setDraft(modifierName(event.key) ?? "");
@@ -111,7 +124,10 @@ export function ChordInput({
       if (chord !== value) onChange(chord);
     };
     const onKeyUp = (event: KeyboardEvent) => {
-      if (MODIFIER_KEYS[event.key] === true && draft === (modifierName(event.key) ?? "")) {
+      if (
+        MODIFIER_KEYS[event.key] === true &&
+        draft === (modifierName(event.key) ?? "")
+      ) {
         setDraft("");
       }
     };
@@ -128,15 +144,22 @@ export function ChordInput({
       ref={ref}
       type="button"
       className={`chord-input${capturing ? " is-capturing" : ""}`}
-      aria-label={label}
+      aria-label={`${label}: ${value}. Click and press a new combination.`}
       aria-live="polite"
+      title={capturing ? "Press a combination, Escape to cancel" : "Click to change"}
       disabled={disabled}
       onClick={() => setCapturing((on) => !on)}
       onBlur={() => setCapturing(false)}
     >
-      {capturing
-        ? draft || "Press a combination…"
-        : value || "Not set"}
+      {capturing ? (
+        draft ? (
+          <Keys chord={draft} />
+        ) : (
+          <span className="chord-input-hint">Press a combination…</span>
+        )
+      ) : (
+        <Keys chord={value} />
+      )}
     </button>
   );
 }

@@ -3971,21 +3971,23 @@ fieldset.edit-block {
    A field that records a hotkey: it reads as a button until it is armed, then
    as the combination being pressed. */
 .chord-input {
-  min-width: 148px;
-  height: 30px;
-  padding: 0 10px;
-  border: 1px solid var(--line-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px;
+  min-height: var(--control-h-sm);
+  padding: 2px 4px;
+  border: 1px solid transparent;
   border-radius: var(--r-2);
-  background: var(--input);
+  background: none;
   color: var(--ink);
   font: inherit;
-  font-size: var(--t-meta);
-  text-align: center;
   cursor: pointer;
 }
 
 .chord-input:hover {
-  border-color: var(--accent-line);
+  border-color: var(--line-strong);
+  background: var(--surface);
 }
 
 .chord-input:focus-visible {
@@ -3997,6 +3999,12 @@ fieldset.edit-block {
   border-color: var(--accent);
   color: var(--accent);
   background: var(--accent-soft);
+  padding-inline: 8px;
+}
+.chord-input-hint {
+  font-size: var(--t-micro);
+  color: var(--accent);
+  white-space: nowrap;
 }
 
 .chord-input:disabled {

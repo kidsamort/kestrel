@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   Eye,
   EyeOff,
+  FolderInput,
   FolderOpen,
   KeyRound,
   Lock,
@@ -291,6 +292,9 @@ export default function Gate({
       // `null` is Cancel: the screen stays exactly as it was.
       if (!picked) return;
       const opened = await vault.openAt(picked);
+      // The row below the field names the file; switching files must rename it,
+      // or the screen would claim the old vault is open.
+      setLocation(await vault.location().catch(() => null));
       if (!opened.locked) {
         onUnlocked(opened);
       } else {
@@ -1170,14 +1174,28 @@ export default function Gate({
                 <span className="gate-file-name" title={location?.path ?? ""}>
                   {fileName}
                 </span>
-                <button
-                  type="button"
-                  className="gate-link"
-                  onClick={() => void revealFolder()}
-                >
-                  <FolderOpen size={13} strokeWidth={1.5} aria-hidden />
-                  Show in folder
-                </button>
+                <div className="gate-file-actions">
+                  <button
+                    type="button"
+                    className="gate-link"
+                    disabled={busy}
+                    onClick={() => void chooseVaultFile()}
+                  >
+                    <FolderInput size={13} strokeWidth={1.5} aria-hidden />
+                    Open another…
+                  </button>
+                  <span className="gate-alternatives-sep" aria-hidden>
+                    ·
+                  </span>
+                  <button
+                    type="button"
+                    className="gate-link"
+                    onClick={() => void revealFolder()}
+                  >
+                    <FolderOpen size={13} strokeWidth={1.5} aria-hidden />
+                    Show in folder
+                  </button>
+                </div>
               </div>
             ) : null}
           </form>

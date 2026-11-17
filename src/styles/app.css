@@ -1099,6 +1099,14 @@ code {
 .gate-file .gate-link {
   align-self: center;
 }
+/* Two actions about the same file: they belong on one line, at the end of the
+   row, with the separator the other action rows use. */
+.gate-file-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
 
 /* The "I don't remember" disclosure. It explains the wall; it does not pretend
    there is a way through it, and it does not draw a second card on a screen

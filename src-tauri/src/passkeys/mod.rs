@@ -112,6 +112,13 @@ fn status_with(
     }
 }
 
+/// Bring the local server up at startup. Windows can call the registered DLL
+/// before anyone opens Settings, and a DLL with no pipe to talk to fails the
+/// ceremony. Writes nothing; a second call is a no-op.
+pub fn start_server(app: &AppHandle) {
+    let _ = ensure_pipe(app);
+}
+
 /// Start the pipe if this build is registered. Called from the explicit
 /// register command and from the status read, so an app restart does not leave
 /// Windows routing ceremonies to a registered DLL whose local server is down.
@@ -143,11 +150,9 @@ pub fn passkeys_answer_approval(id: u64, allow: bool) -> Result<bool, String> {
 
 #[tauri::command]
 pub fn passkeys_status(app: AppHandle) -> Result<PasskeyStatus, String> {
-    let error = if matches!(reg::is_registered(), Ok(true)) {
-        ensure_pipe(&app)
-    } else {
-        None
-    };
+    // Serving is unconditional: the DLL is what Windows calls, and a packaged
+    // registration lives in the package manifest, not in HKCU.
+    let error = ensure_pipe(&app);
     Ok(status_with(None, error))
 }
 

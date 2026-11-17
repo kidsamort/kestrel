@@ -154,6 +154,9 @@ pub fn run() {
             // the state exists. A vault that is locked still answers: the row is
             // policy, not content.
             quick::apply_stored_preference(app.handle());
+            // Windows calls the passkey DLL whenever a site asks for a key; the
+            // server has to be listening before that, not after a card is opened.
+            passkeys::start_server(app.handle());
             // Automatic sync: one background thread for the process. It reads
             // `auto_interval` on every wake, so the toggle needs no restart, and
             // it does nothing while the vault is locked. It holds the app handle

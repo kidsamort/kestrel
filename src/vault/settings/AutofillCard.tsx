@@ -190,7 +190,7 @@ export default function AutofillCard() {
               </div>
               <Button
                 variant="quiet"
-                size="sm"
+                size="md"
                 iconOnly
                 label={`Delete the rule for ${rule.exe}`}
                 disabled={busy}
@@ -239,7 +239,12 @@ export default function AutofillCard() {
             onChange={(value) => setMode(value as AutofillMode)}
           />
         </div>
-        <Button type="submit" variant="secondary" size="sm" disabled={busy || !exe.trim()}>
+        <Button
+          type="submit"
+          variant="secondary"
+          size="md"
+          disabled={busy || !exe.trim()}
+        >
           Add rule
         </Button>
       </form>

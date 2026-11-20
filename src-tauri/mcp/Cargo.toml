@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "MCP server (stdio) for Kestrel secrets, gated by per-field grants"
 edition = "2021"
 rust-version = "1.90"
+license.workspace = true
 
 [[bin]]
 name = "kestrel-mcp"

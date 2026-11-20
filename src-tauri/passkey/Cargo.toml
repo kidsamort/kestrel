@@ -3,6 +3,7 @@ name = "kestrel-passkey"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.90"
+license.workspace = true
 description = "WebAuthn credential engine and the Windows plugin surface for Kestrel"
 
 [lib]

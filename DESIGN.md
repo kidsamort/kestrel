@@ -936,10 +936,12 @@ JS budget (≤ 500 kB gzip) is met. Fonts are preloaded assets, not JS.
   step could not be driven by the synthetic keystroke harness in this session,
   so neither the submit nor the empty-vault state has a current capture. The
   vault is left at its documented 6-item demo state.
-- Accent evidence (`artifacts/accent-*-light/dark.png`) is captured on the
-  Settings · Appearance screen, where the swatch row and the accent state are
-  both visible, rather than on the vault; `accent-violet-vault.png` additionally
-  shows the accent applied to item content. The same tokens drive both screens.
+- Accent evidence (accent × theme captures) was taken on the Settings ·
+  Appearance screen, where the swatch row and the accent state are both
+  visible, rather than on the vault; a violet capture additionally showed the
+  accent applied to item content. Those captures are design-pass artefacts and
+  are not committed, so this claim rests on the token definitions in §2, not on
+  a file in the repository. The same tokens drive both screens.
 - Focus evidence is captured for a wrapped input, a wrapped select, an accent
   chip and the palette. Menu items, dialog controls and window chrome use the
   same inset/outer rules but were not photographed individually.

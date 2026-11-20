@@ -3,6 +3,7 @@ name = "kestrel-nmhost"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.90"
+license.workspace = true
 description = "Native messaging host that lets a browser extension reach Kestrel"
 
 [dependencies]

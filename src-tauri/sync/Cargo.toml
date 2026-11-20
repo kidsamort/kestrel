@@ -3,6 +3,7 @@ name = "kestrel-sync"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.90"
+license.workspace = true
 description = "Self-hostable, server-blind sync service for Kestrel"
 
 [[bin]]

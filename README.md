@@ -24,7 +24,7 @@ flowchart LR
     D[commands.rs<br/>typed IPC surface]
     E[session.rs<br/>keys, auto-lock, clipboard wipe]
     F[crypto.rs<br/>Argon2id · HKDF-SHA256 · XChaCha20-Poly1305]
-    G[store.rs<br/>SQLite, ciphertext rows]
+    G[store/<br/>SQLite, ciphertext rows]
     H[totp.rs · generator.rs]
   end
   A --> D
@@ -59,6 +59,8 @@ The properties that matter, and what Kestrel does with each:
   values never do.
 - Changing the master password re-encrypts every item under a new salt.
 
+Private vulnerability reports and the known limitations: [`SECURITY.md`](SECURITY.md).
+
 ## Design
 
 The interface is its own system: **Graphite** — neutral white/slate grounds by
@@ -72,47 +74,71 @@ codes and numerals.
 - Full direction, token values (light + dark + every accent), measured contrast,
   component states, focus contract, motion, keyboard map, per-screen specs and
   design-only specs for every roadmap capability: [`DESIGN.md`](DESIGN.md).
-- Evidence (accent × theme captures, focus captures, screens, exact commands and
-  the unverified list): [`artifacts/VERIFICATION.md`](artifacts/VERIFICATION.md).
+- Evidence (real captures of the running app): [`docs/screenshots/`](docs/screenshots/).
 - Shipped UI covers create/unlock/lock, the 18-category vault with search,
   favorites, tags, TOTP, copy-with-wipe feedback, the editor, generator,
   settings (theme + accent, auto-lock, master-password rotation) and a
   real-action command palette. Keyboard-complete, virtualises long lists, and
   stays inside the 500 kB gzip budget.
 
+| Access grants | CLI pairing tokens | After a revoke |
+|---|---|---|
+| ![](docs/screenshots/access-section.png) | ![](docs/screenshots/cli-tokens.png) | ![](docs/screenshots/cli-tokens-revoked.png) |
+
+These are captures of the running Windows build, not mockups: who may read a
+field, what a paired process was granted, and what a withdrawn token looks like.
+
 ## Layout
 
 ```
-kestrel/
-  src/                    React UI
-    styles/tokens.css     design tokens (colour, type, space, motion)
-    styles/app.css        one stylesheet, no runtime style computation
-    ui/                   buttons, fields, overlays, toasts, tooltips
-    vault/                sidebar, list, detail, editor, generator, settings, palette
-  DESIGN.md               direction, tokens, states, keyboard map, specs for
+src/                      React UI
+  styles/tokens.css       design tokens (colour, type, space, motion)
+  styles/app.css          one stylesheet, no runtime style computation
+  ui/                     buttons, fields, overlays, toasts, tooltips
+  vault/                  sidebar, list, detail, editor, generator, settings, palette
+docs/screenshots/         captures of the running Windows build
+DESIGN.md                 direction, tokens, states, keyboard map, specs for
                           capabilities 1–31 and the extension API (§11)
-  ROADMAP.md              shipped / designed status per capability
-  LICENSE                 MIT
-  NOTICE                  trademark and third-party notes
-  artifacts/              screen captures + VERIFICATION.md
-  src-tauri/
-    src/lib.rs            Tauri builder, auto-lock watchdog
-    src/commands.rs       core IPC surface (typed commands)
-    core/                 kestrel-core: zero UI dependencies
-      src/crypto.rs       Argon2id · HKDF · XChaCha20-Poly1305 (+ tests)
-      src/store/          SQLite schema, ciphertext rows, key rotation,
+ROADMAP.md                shipped / designed status per capability
+SECURITY.md               private disclosure, scope, known limitations
+LICENSE                   MIT
+NOTICE                    trademark and third-party notes
+src-tauri/
+  src/lib.rs              Tauri builder, auto-lock watchdog
+  src/commands.rs         core IPC surface (typed commands)
+  core/                   kestrel-core: zero UI dependencies
+    src/crypto.rs         Argon2id · HKDF · XChaCha20-Poly1305 (+ tests)
+    src/store/            SQLite schema, ciphertext rows, key rotation,
                           paged queries + the non-secret search projection
-      src/session.rs      unlock / auto-lock / clipboard / TOTP glue
-      src/model.rs        item model, 18 categories
-      src/totp.rs         RFC 6238
-      src/generator.rs    password + passphrase generation
-      tests/vault.rs      11 end-to-end vault tests
-  tools/rust-env.ps1      clean PATH wrapper for cargo (harness shell mangles PATH)
-  tools/smoke.ps1         build → launch → screenshot
+    src/session.rs        unlock / auto-lock / clipboard / TOTP glue
+    src/model.rs          item model, 18 categories
+    src/totp.rs           RFC 6238
+    src/generator.rs      password + passphrase generation
+    tests/vault.rs        18 end-to-end vault tests
+tools/rust-env.ps1        clean PATH wrapper for cargo (harness shell mangles PATH)
+tools/smoke.ps1           build → launch → screenshot
 ```
 
 The core is a separate crate so vault logic can be tested, and later reused by a
 CLI or browser bridge, without pulling in a GUI toolkit.
+
+## Requirements
+
+The desktop app is **Windows only**: the shell binds Win32 directly for
+autofill (UI Automation), Windows Hello (CNG/NCrypt), the native-messaging
+registry keys and named pipes. There is no macOS or Linux build.
+
+- Windows 10 or 11, with the WebView2 runtime (present on Windows 11; install
+  the Evergreen bootstrapper on Windows 10).
+- Node 22 and npm.
+- Rust 1.90 or newer with the `stable-x86_64-pc-windows-gnu` toolchain and a
+  GNU linker — WinLibs `mingw64\bin` on `PATH`. The MSVC target is not supported;
+  `src-tauri/.cargo/config.toml` pins the static CRT the GNU build needs.
+- No other system dependency: no service, no database server, no .NET runtime.
+
+`kestrel-core`, `kestrel-net`, `kestrel-engine` and `kestrel-sync` are plain
+Rust and build on Linux; CI runs the core's format, clippy and test jobs on
+Ubuntu. The desktop shell itself is only built on Windows.
 
 ## Run
 
@@ -121,6 +147,10 @@ npm install
 npm run app:dev      # tauri dev
 npm run app:build    # installer + release binary
 ```
+
+`npm run app:build` produces an unsigned installer: Windows SmartScreen warns
+on first run until someone signs it. Nothing is downloaded at build time except
+the npm and crates.io dependencies.
 
 Self-hosted sync — one binary, one SQLite file, one blob directory:
 
@@ -150,11 +180,16 @@ Closing the window hides the app to the notification area instead of ending the
 process: the session and the global hotkey keep working, and the tray menu has
 Open, Lock and Quit. Launching it again restores the hidden window.
 
-Build notes (this machine): Rust `stable-x86_64-pc-windows-gnu` + WinLibs. Two
+Windows toolchain notes: Rust `stable-x86_64-pc-windows-gnu` + WinLibs. Two
 adjustments are committed and required — `crate-type = ["rlib"]` (a `cdylib`
 would export every symbol; PE caps exports at 65535) and
 `-C target-feature=+crt-static` in `src-tauri/.cargo/config.toml` (otherwise the
 binaries need the mingw runtime DLLs on `PATH`).
+
+CI (`.github/workflows/ci.yml`) runs `tsc`, the frontend tests and the Vite
+build, plus `cargo fmt --check`, `cargo clippy -D warnings` and the core's tests
+on Ubuntu. It does not build the Windows shell — that step needs this machine's
+toolchain and a Windows runner.
 
 ## Status
 

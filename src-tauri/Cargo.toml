@@ -4,9 +4,13 @@ version = "0.1.0"
 description = "Kestrel — local-first password manager (desktop shell)"
 edition = "2021"
 rust-version = "1.90"
+license.workspace = true
 
 [workspace]
 members = ["core", "cli", "mcp", "nmhost", "passkey", "sync", "net", "engine"]
+
+[workspace.package]
+license = "MIT"
 
 [lib]
 name = "kestrel"

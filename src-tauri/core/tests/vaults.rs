@@ -80,12 +80,8 @@ fn vaults_can_be_renamed_and_counts_follow_the_scope() {
     let work = state.create_vault("Work").unwrap();
     state.switch_vault(&work.uuid).unwrap();
     // Drafts are not stored, so each one is saved to become an item.
-    state
-        .save(state.create_default("login").unwrap())
-        .unwrap();
-    state
-        .save(state.create_default("login").unwrap())
-        .unwrap();
+    state.save(state.create_default("login").unwrap()).unwrap();
+    state.save(state.create_default("login").unwrap()).unwrap();
 
     state.rename_vault(&work.uuid, "  Consulting  ").unwrap();
     let listed = state.vaults().unwrap();

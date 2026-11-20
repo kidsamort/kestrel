@@ -115,6 +115,10 @@ impl Store {
     /// `query` is matched against the plaintext projection, so an empty search
     /// decrypts only the requested page. Filtering, ordering, `LIMIT`/`OFFSET`
     /// and the `COUNT(*)` all run in SQLite; no row outside the page is read.
+    ///
+    /// The seven arguments mirror the filter surface one-to-one; folding them
+    /// into a struct would only move the same list to every call site.
+    #[allow(clippy::too_many_arguments)]
     pub fn list_page(
         &self,
         master: &SymKey,

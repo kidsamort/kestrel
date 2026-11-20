@@ -176,10 +176,9 @@ mod tests {
 
     #[test]
     fn responses_ignore_members_from_a_newer_minor_version() {
-        let response: PushResponse = serde_json::from_str(
-            r#"{"applied":["a"],"conflicts":[],"retry_after":1}"#,
-        )
-        .expect("unknown response members are ignored");
+        let response: PushResponse =
+            serde_json::from_str(r#"{"applied":["a"],"conflicts":[],"retry_after":1}"#)
+                .expect("unknown response members are ignored");
         assert_eq!(response.applied, ["a"]);
     }
 }

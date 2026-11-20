@@ -228,7 +228,10 @@ mod tests {
             "http://LocalHost:8787",
             "http://[::1]:8787",
         ] {
-            assert!(origin(loopback, false).is_ok(), "{loopback} should be allowed");
+            assert!(
+                origin(loopback, false).is_ok(),
+                "{loopback} should be allowed"
+            );
         }
 
         let error = origin("http://192.168.1.10:8787", false).expect_err("remote plain http");

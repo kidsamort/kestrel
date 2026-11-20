@@ -145,7 +145,7 @@ pub(super) fn unhex32(text: &str) -> Result<[u8; 32], StoreError> {
 /// no-echo rule as [`unhex32`].
 pub(super) fn unhex(text: &str) -> Result<Vec<u8>, StoreError> {
     let text = text.trim();
-    if text.len() % 2 != 0 {
+    if !text.len().is_multiple_of(2) {
         return Err(StoreError::Invalid("the value is not hex".into()));
     }
     let mut out = Vec::with_capacity(text.len() / 2);
@@ -162,10 +162,7 @@ pub(super) fn unhex(text: &str) -> Result<Vec<u8>, StoreError> {
 
 /// The X25519 shared secret. Low-order public keys produce all zeros, which a
 /// real peer never sends; refusing them here keeps the KDF input honest.
-pub(super) fn shared_secret(
-    secret: &[u8; 32],
-    public: &[u8; 32],
-) -> Result<[u8; 32], StoreError> {
+pub(super) fn shared_secret(secret: &[u8; 32], public: &[u8; 32]) -> Result<[u8; 32], StoreError> {
     let shared = MontgomeryPoint(*public).mul_clamped(*secret).to_bytes();
     if shared == [0u8; 32] {
         return Err(StoreError::Invalid(
@@ -323,7 +320,9 @@ impl Store {
                 &row.signing_key_wrapped,
             )
             .map_err(|_| {
-                StoreError::Invalid("this device's signing key does not open with this vault".into())
+                StoreError::Invalid(
+                    "this device's signing key does not open with this vault".into(),
+                )
             })?,
         );
         let agreement_plain = zeroize::Zeroizing::new(

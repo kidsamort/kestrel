@@ -41,14 +41,14 @@
 //! while the vault is closed, and a persisted bridge that died on the first idle
 //! lock would be broken by design. It is removed by uninstall.
 
+mod browser_ops;
 pub mod pipe;
 pub mod protocol;
-mod browser_ops;
 
 pub use pipe::PIPE_PATH;
 pub use protocol::{
-    Auth, BrowserItem, BrowserStatus, EnvBinding, Grant, ItemMeta, RunOutput, SdkBackend,
-    SdkError, SecretField, SecretItem, SessionToken, TokenKind,
+    Auth, BrowserItem, BrowserStatus, EnvBinding, Grant, ItemMeta, RunOutput, SdkBackend, SdkError,
+    SecretField, SecretItem, SessionToken, TokenKind,
 };
 
 use kestrel_core::session::{VaultError, VaultState};
@@ -337,12 +337,7 @@ impl SdkBackend for VaultBackend {
         self.session(|state| browser_ops::items(state, origin))
     }
 
-    fn browser_reveal(
-        &self,
-        origin: &str,
-        item_id: &str,
-        field: &str,
-    ) -> Result<String, SdkError> {
+    fn browser_reveal(&self, origin: &str, item_id: &str, field: &str) -> Result<String, SdkError> {
         // The core re-checks the origin rule, the item's URL and the field
         // kind, then audits the read before returning the value.
         self.session(|state| browser_ops::reveal(state, origin, item_id, field))
@@ -478,8 +473,12 @@ fn spawn_child(
             }
         }
     };
-    let stdout = stdout.and_then(|handle| handle.join().ok()).unwrap_or_default();
-    let stderr = stderr.and_then(|handle| handle.join().ok()).unwrap_or_default();
+    let stdout = stdout
+        .and_then(|handle| handle.join().ok())
+        .unwrap_or_default();
+    let stderr = stderr
+        .and_then(|handle| handle.join().ok())
+        .unwrap_or_default();
     let status = exit.map_err(|error| SdkError::Internal(error.to_string()))?;
 
     Ok(RunOutput {
@@ -540,7 +539,10 @@ fn map_error(error: VaultError) -> SdkError {
 /// Revoke the token when the vault is not open. Split out so the watcher's one
 /// decision is testable without an app handle.
 fn revoke_if_locked(state: &VaultState, auth: &Auth) -> bool {
-    let locked = state.state().map(|snapshot| snapshot.locked).unwrap_or(true);
+    let locked = state
+        .state()
+        .map(|snapshot| snapshot.locked)
+        .unwrap_or(true);
     if locked && auth.has_session_tokens() {
         // Only session tokens die here. The browser token is persisted in a
         // file and every browser op already answers `locked` while the vault
@@ -633,12 +635,11 @@ impl SdkHandle {
             running: self.server.lock().expect("sdk server mutex").is_some(),
             pipe: PIPE_PATH.to_string(),
             paired: self.auth.cli_paired(),
-            unlocked: state.state().map(|snapshot| !snapshot.locked).unwrap_or(false),
-            error: self
-                .startup_error
-                .lock()
-                .expect("sdk error mutex")
-                .clone(),
+            unlocked: state
+                .state()
+                .map(|snapshot| !snapshot.locked)
+                .unwrap_or(false),
+            error: self.startup_error.lock().expect("sdk error mutex").clone(),
         }
     }
 
@@ -694,7 +695,10 @@ impl SdkHandle {
     /// Refuse pairing while the vault is closed: a token minted then would only
     /// ever answer `locked`.
     fn require_unlocked(&self, state: &VaultState) -> Result<(), String> {
-        let unlocked = state.state().map(|snapshot| !snapshot.locked).unwrap_or(false);
+        let unlocked = state
+            .state()
+            .map(|snapshot| !snapshot.locked)
+            .unwrap_or(false);
         if !unlocked {
             return Err("Unlock the vault before pairing a CLI.".into());
         }
@@ -706,7 +710,10 @@ impl SdkHandle {
     /// Mint the one token the browser host reads from its file. The vault must
     /// be open: a token minted while locked would only ever answer `locked`.
     pub fn pair_browser(&self, state: &VaultState) -> Result<String, String> {
-        let unlocked = state.state().map(|snapshot| !snapshot.locked).unwrap_or(false);
+        let unlocked = state
+            .state()
+            .map(|snapshot| !snapshot.locked)
+            .unwrap_or(false);
         if !unlocked {
             return Err("Unlock the vault before installing the browser bridge.".into());
         }
@@ -740,7 +747,10 @@ impl SdkHandle {
             binary,
             binary_present,
             running: self.server.lock().expect("sdk server mutex").is_some(),
-            unlocked: state.state().map(|snapshot| !snapshot.locked).unwrap_or(false),
+            unlocked: state
+                .state()
+                .map(|snapshot| !snapshot.locked)
+                .unwrap_or(false),
             clients: self
                 .auth
                 .mcp_clients()
@@ -762,7 +772,10 @@ impl SdkHandle {
         client: &str,
         grants: &[McpGrantInput],
     ) -> Result<McpPairing, String> {
-        let unlocked = state.state().map(|snapshot| !snapshot.locked).unwrap_or(false);
+        let unlocked = state
+            .state()
+            .map(|snapshot| !snapshot.locked)
+            .unwrap_or(false);
         if !unlocked {
             return Err("Unlock the vault before pairing an MCP client.".into());
         }
@@ -838,9 +851,7 @@ impl SdkHandle {
             }
             let names = resolved.get(&entry.item_id).and_then(Option::as_ref);
             let (item_title, field_label) = match names {
-                Some((title, fields)) => {
-                    (Some(title.clone()), fields.get(&entry.field).cloned())
-                }
+                Some((title, fields)) => (Some(title.clone()), fields.get(&entry.field).cloned()),
                 None => (None, None),
             };
             rows.push(McpAuditRow {
@@ -1076,7 +1087,10 @@ mod tests {
         assert_eq!(rows[0].item_title.as_deref(), Some("Deploy target"));
         assert_eq!(rows[0].field_label.as_deref(), Some("password"));
         let serialised = serde_json::to_string(&rows).expect("audit json");
-        assert!(!serialised.contains(&secret), "the card's audit leaked: {serialised}");
+        assert!(
+            !serialised.contains(&secret),
+            "the card's audit leaked: {serialised}"
+        );
 
         // Revoking drops the token and the rows: the old grant is dead.
         handle.revoke_mcp(&state, "editor").expect("revoke");
@@ -1086,7 +1100,10 @@ mod tests {
             Err(VaultError::NotGranted)
         ));
         assert!(handle.mcp_status(&state).clients.is_empty());
-        assert!(handle.revoke_mcp(&state, "editor").is_err(), "already revoked");
+        assert!(
+            handle.revoke_mcp(&state, "editor").is_err(),
+            "already revoked"
+        );
 
         let _ = std::fs::remove_dir_all(dir);
     }
@@ -1101,8 +1118,13 @@ mod tests {
             field_id: password_field.clone(),
         };
 
-        assert!(handle.pair_mcp(&state, "", &[grant.clone()]).is_err(), "no name");
-        assert!(handle.pair_mcp(&state, "bad/name", &[grant.clone()]).is_err());
+        assert!(
+            handle.pair_mcp(&state, "", &[grant.clone()]).is_err(),
+            "no name"
+        );
+        assert!(handle
+            .pair_mcp(&state, "bad/name", &[grant.clone()])
+            .is_err());
         assert!(handle.pair_mcp(&state, "editor", &[]).is_err(), "no grants");
         assert!(
             handle
@@ -1135,7 +1157,10 @@ mod tests {
         assert!(state.mcp_grants().expect("grants").is_empty());
 
         state.lock().expect("lock");
-        assert!(handle.pair_mcp(&state, "editor", &[grant]).is_err(), "locked");
+        assert!(
+            handle.pair_mcp(&state, "editor", &[grant]).is_err(),
+            "locked"
+        );
 
         let _ = std::fs::remove_dir_all(dir);
     }
@@ -1159,7 +1184,10 @@ mod tests {
         assert_eq!(password.label, "password");
         assert_eq!(password.kind, "password");
         let serialised = serde_json::to_string(&items).expect("inventory json");
-        assert!(!serialised.contains(&secret), "inventory leaked: {serialised}");
+        assert!(
+            !serialised.contains(&secret),
+            "inventory leaked: {serialised}"
+        );
 
         let _ = std::fs::remove_dir_all(dir);
     }
@@ -1247,10 +1275,14 @@ mod tests {
         };
 
         assert!(
-            handle.pair_scoped(&state, &request("terminal", vec![])).is_err(),
+            handle
+                .pair_scoped(&state, &request("terminal", vec![]))
+                .is_err(),
             "an empty allowlist would be a token that can read nothing"
         );
-        assert!(handle.pair_scoped(&state, &request("", vec![grant.clone()])).is_err());
+        assert!(handle
+            .pair_scoped(&state, &request("", vec![grant.clone()]))
+            .is_err());
         assert!(handle
             .pair_scoped(&state, &request("bad/name", vec![grant.clone()]))
             .is_err());
@@ -1271,7 +1303,10 @@ mod tests {
         );
         // None of the refusals minted a token or a row.
         assert!(!handle.auth.cli_paired());
-        assert!(state.grants_for("cli", "terminal").expect("grants").is_empty());
+        assert!(state
+            .grants_for("cli", "terminal")
+            .expect("grants")
+            .is_empty());
 
         state.lock().expect("lock");
         assert!(handle
@@ -1360,7 +1395,11 @@ mod tests {
             ),
             Err(error) => panic!("could not start the SDK pipe: {error}"),
         };
-        let pipe_name = if production { PIPE_PATH.to_string() } else { name };
+        let pipe_name = if production {
+            PIPE_PATH.to_string()
+        } else {
+            name
+        };
         let client = std::fs::OpenOptions::new()
             .read(true)
             .write(true)
@@ -1380,7 +1419,11 @@ mod tests {
         eprintln!("SDK pipe DACL: {dacl}");
 
         // status needs no token.
-        let (_, status) = ask(&mut client, &mut reader, &serde_json::json!({"op": "status"}));
+        let (_, status) = ask(
+            &mut client,
+            &mut reader,
+            &serde_json::json!({"op": "status"}),
+        );
         assert_eq!(status["ok"], serde_json::json!(true));
         assert_eq!(status["running"], serde_json::json!(true));
         assert_eq!(status["pipe"], serde_json::json!(PIPE_PATH));
@@ -1400,7 +1443,10 @@ mod tests {
         assert_eq!(items[0]["title"], serde_json::json!("Deploy target"));
         assert_eq!(items[0]["category"], serde_json::json!("login"));
         assert!(!raw.contains(&secret), "items.list leaked a value: {raw}");
-        assert!(!raw.contains("password"), "items.list leaked a field id: {raw}");
+        assert!(
+            !raw.contains("password"),
+            "items.list leaked a field id: {raw}"
+        );
 
         // run: the server starts a real child with the value in its environment.
         // The child compares the variable without printing it, so the exit code
@@ -1445,13 +1491,19 @@ mod tests {
             &mut reader,
             &serde_json::json!({"op": "items.list", "token": "not-the-token"}),
         );
-        assert_eq!(denied["error"], serde_json::json!(protocol::ERR_UNAUTHORIZED));
+        assert_eq!(
+            denied["error"],
+            serde_json::json!(protocol::ERR_UNAUTHORIZED)
+        );
         let (_, unknown) = ask(
             &mut client,
             &mut reader,
             &serde_json::json!({"op": "items.purge", "token": token}),
         );
-        assert_eq!(unknown["error"], serde_json::json!(protocol::ERR_UNKNOWN_OP));
+        assert_eq!(
+            unknown["error"],
+            serde_json::json!(protocol::ERR_UNKNOWN_OP)
+        );
 
         // The real client binary, when the harness points at it. It can only
         // reach the production pipe name, which is why this runs only when the
@@ -1462,11 +1514,7 @@ mod tests {
             None
         };
         if let Some(cli) = &cli {
-            fn run_cli(
-                exe: &str,
-                args: &[&str],
-                env: &[(&str, &str)],
-            ) -> std::process::Output {
+            fn run_cli(exe: &str, args: &[&str], env: &[(&str, &str)]) -> std::process::Output {
                 let mut command = std::process::Command::new(exe);
                 command.args(args);
                 for (key, value) in env {
@@ -1512,7 +1560,11 @@ mod tests {
                 run.status.code().unwrap_or(-1)
             );
             assert!(run.status.success(), "run failed: {out}");
-            assert_eq!(out.trim(), secret.as_str(), "the child did not see the value");
+            assert_eq!(
+                out.trim(),
+                secret.as_str(),
+                "the child did not see the value"
+            );
 
             let denied = run_cli(cli, &["--token", "not-the-token", "list"], &[]);
             eprintln!(
@@ -1556,7 +1608,10 @@ mod tests {
         assert_eq!(secrets["ok"], serde_json::json!(true));
         assert!(!raw.contains(&secret), "secrets.list leaked a value: {raw}");
         assert!(raw.contains(&field_id), "secrets.list lost the field id");
-        assert!(raw.contains("password"), "secrets.list lost the field label");
+        assert!(
+            raw.contains("password"),
+            "secrets.list lost the field label"
+        );
         assert!(
             secrets["items"][0].get("fields").is_some(),
             "secrets.list must describe fields"
@@ -1592,7 +1647,10 @@ mod tests {
                 "field": username_field,
             }),
         );
-        assert_eq!(ungranted["error"], serde_json::json!(protocol::ERR_NOT_GRANTED));
+        assert_eq!(
+            ungranted["error"],
+            serde_json::json!(protocol::ERR_NOT_GRANTED)
+        );
         // A CLI token asking for the same op is a scope violation.
         let (_, cli_reveal) = ask(
             &mut client,
@@ -1604,10 +1662,17 @@ mod tests {
                 "field": field_id,
             }),
         );
-        assert_eq!(cli_reveal["error"], serde_json::json!(protocol::ERR_FORBIDDEN));
+        assert_eq!(
+            cli_reveal["error"],
+            serde_json::json!(protocol::ERR_FORBIDDEN)
+        );
 
         let audit = state.mcp_audit(10).expect("audit rows");
-        assert_eq!(audit.len(), 1, "only the granted read is recorded: {audit:?}");
+        assert_eq!(
+            audit.len(),
+            1,
+            "only the granted read is recorded: {audit:?}"
+        );
         assert_eq!(audit[0].client, "editor");
         eprintln!(
             "mcp_audit -> {} row(s): {} read {} / {}",
@@ -1681,10 +1746,19 @@ mod tests {
                     .map(|line| serde_json::from_str(line).expect("one json message per line"))
                     .collect();
                 assert_eq!(replies.len(), 4, "the notification has no reply: {stdout}");
-                assert_eq!(replies[0]["result"]["serverInfo"]["name"], serde_json::json!("kestrel-mcp"));
-                assert_eq!(replies[0]["result"]["clientInfo"]["name"], serde_json::json!("kestrel-sdk-test"));
                 assert_eq!(
-                    replies[1]["result"]["tools"].as_array().expect("tools").len(),
+                    replies[0]["result"]["serverInfo"]["name"],
+                    serde_json::json!("kestrel-mcp")
+                );
+                assert_eq!(
+                    replies[0]["result"]["clientInfo"]["name"],
+                    serde_json::json!("kestrel-sdk-test")
+                );
+                assert_eq!(
+                    replies[1]["result"]["tools"]
+                        .as_array()
+                        .expect("tools")
+                        .len(),
                     2
                 );
                 let listed = replies[2]["result"]["content"][0]["text"]
@@ -1722,7 +1796,11 @@ mod tests {
             &serde_json::json!({"op": "items.list", "token": token}),
         );
         assert_eq!(locked["error"], serde_json::json!(protocol::ERR_LOCKED));
-        let (_, status) = ask(&mut client, &mut reader, &serde_json::json!({"op": "status"}));
+        let (_, status) = ask(
+            &mut client,
+            &mut reader,
+            &serde_json::json!({"op": "status"}),
+        );
         assert_eq!(status["unlocked"], serde_json::json!(false));
         assert_eq!(status["paired"], serde_json::json!(false));
 
@@ -1749,12 +1827,8 @@ mod tests {
         let stop = AtomicBool::new(false);
         let error = spawn_child(&[], &[], &stop).expect_err("empty argv");
         assert_eq!(error.code(), protocol::ERR_BAD_REQUEST);
-        let error = spawn_child(
-            &["kestrel-no-such-program".to_string()],
-            &[],
-            &stop,
-        )
-        .expect_err("missing program");
+        let error = spawn_child(&["kestrel-no-such-program".to_string()], &[], &stop)
+            .expect_err("missing program");
         assert_eq!(error.code(), protocol::ERR_SPAWN_FAILED);
     }
 }

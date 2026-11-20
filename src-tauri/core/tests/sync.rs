@@ -182,7 +182,10 @@ fn dirty_rows_are_ordered_limited_and_marked_clean() {
     bump(&mut second, "device-a");
     store.sync_upsert(VAULT, "item-a", &second, true).unwrap();
     assert_eq!(store.sync_dirty(VAULT, 10).unwrap().len(), 3);
-    assert_eq!(store.sync_state(VAULT, "item-a").unwrap().unwrap().clock, second);
+    assert_eq!(
+        store.sync_state(VAULT, "item-a").unwrap().unwrap().clock,
+        second
+    );
 
     // Marking clean clears the flag and keeps the settled clock.
     store.sync_mark_clean(VAULT, "item-a", &second).unwrap();
@@ -240,7 +243,10 @@ fn refused_and_malformed_clocks_are_errors() {
         store.sync_state(VAULT, "item-1"),
         Err(StoreError::Json(_))
     ));
-    assert!(matches!(store.sync_dirty(VAULT, 10), Err(StoreError::Json(_))));
+    assert!(matches!(
+        store.sync_dirty(VAULT, 10),
+        Err(StoreError::Json(_))
+    ));
 
     // The conflict table decodes its clocks the same way.
     let row = SyncConflictRow {
@@ -260,7 +266,10 @@ fn refused_and_malformed_clocks_are_errors() {
         )
         .expect("corrupt clock");
     }
-    assert!(matches!(store.sync_conflicts(VAULT), Err(StoreError::Json(_))));
+    assert!(matches!(
+        store.sync_conflicts(VAULT),
+        Err(StoreError::Json(_))
+    ));
 }
 
 /* ----------------------------------------------------------------- clocks ---- */
@@ -700,7 +709,10 @@ fn conflicts_replace_per_item_and_reset_wipes_everything() {
     replacement.remote_body = vec![9, 9];
     replacement.created_at = 101;
     store.sync_conflict_put(VAULT, &replacement).unwrap();
-    assert_eq!(store.sync_conflicts(VAULT).unwrap(), vec![replacement.clone()]);
+    assert_eq!(
+        store.sync_conflicts(VAULT).unwrap(),
+        vec![replacement.clone()]
+    );
 
     let second = SyncConflictRow {
         item_id: "item-0".to_string(),
@@ -721,7 +733,9 @@ fn conflicts_replace_per_item_and_reset_wipes_everything() {
     assert_eq!(store.sync_conflicts(VAULT).unwrap(), vec![replacement]);
 
     // Reset clears clocks, conflicts and metadata together.
-    store.sync_upsert(VAULT, "item-1", &local_clock, true).unwrap();
+    store
+        .sync_upsert(VAULT, "item-1", &local_clock, true)
+        .unwrap();
     store.sync_meta_set("cursor", "5").unwrap();
     store.sync_reset().unwrap();
     assert!(store.sync_conflicts(VAULT).unwrap().is_empty());
@@ -741,7 +755,10 @@ fn backfill_queues_old_items_and_a_second_vault_stays_separate() {
     let item = base_item();
     store.save_item(&master, &meta, item.clone()).expect("save");
     assert!(
-        store.sync_state(&meta.vault_uuid, &item.id).unwrap().is_none(),
+        store
+            .sync_state(&meta.vault_uuid, &item.id)
+            .unwrap()
+            .is_none(),
         "a vault without an account records nothing"
     );
 
@@ -755,7 +772,10 @@ fn backfill_queues_old_items_and_a_second_vault_stays_separate() {
         .sync_state(&meta.vault_uuid, &item.id)
         .unwrap()
         .expect("row");
-    assert!(state.dirty, "the first sync must upload what the vault holds");
+    assert!(
+        state.dirty,
+        "the first sync must upload what the vault holds"
+    );
     assert_eq!(state.clock.get(&identity.device_id), Some(&1));
 
     // Idempotent: a second run cannot re-queue an item the server already has.
@@ -789,21 +809,35 @@ fn forgetting_a_server_keeps_the_item_clocks_and_drops_the_metadata() {
     let identity = store.device_identity(&master).expect("identity");
     let mut clock = clock(&[(&identity.device_id, 7)]);
     store.sync_upsert(VAULT, "item-1", &clock, false).unwrap();
-    store.sync_set_body(VAULT, "item-1", b"sealed", &clock).unwrap();
+    store
+        .sync_set_body(VAULT, "item-1", b"sealed", &clock)
+        .unwrap();
     store.sync_meta_set("cursor", "42").unwrap();
-    store.sync_conflict_put(VAULT, &SyncConflictRow {
-        item_id: "item-1".to_string(),
-        local_clock: clock.clone(),
-        remote_clock: clock.clone(),
-        local_body: vec![1],
-        remote_body: vec![2],
-        created_at: 1,
-    }).unwrap();
+    store
+        .sync_conflict_put(
+            VAULT,
+            &SyncConflictRow {
+                item_id: "item-1".to_string(),
+                local_clock: clock.clone(),
+                remote_clock: clock.clone(),
+                local_body: vec![1],
+                remote_body: vec![2],
+                created_at: 1,
+            },
+        )
+        .unwrap();
 
     store.sync_forget_server().expect("forget");
 
-    assert_eq!(store.sync_meta_get("cursor").unwrap(), None, "the cursor belongs to the server");
-    assert!(store.sync_conflicts(VAULT).unwrap().is_empty(), "conflicts belong to the server");
+    assert_eq!(
+        store.sync_meta_get("cursor").unwrap(),
+        None,
+        "the cursor belongs to the server"
+    );
+    assert!(
+        store.sync_conflicts(VAULT).unwrap().is_empty(),
+        "conflicts belong to the server"
+    );
     let state = store
         .sync_state(VAULT, "item-1")
         .unwrap()
@@ -814,7 +848,9 @@ fn forgetting_a_server_keeps_the_item_clocks_and_drops_the_metadata() {
     // And a re-seed cannot overwrite that clock with `{device: 1}`.
     let before = clock.clone();
     bump(&mut clock, &identity.device_id);
-    store.sync_backfill(VAULT, &identity.device_id).expect("backfill");
+    store
+        .sync_backfill(VAULT, &identity.device_id)
+        .expect("backfill");
     assert_eq!(
         store.sync_state(VAULT, "item-1").unwrap().unwrap().clock,
         before,
@@ -835,7 +871,11 @@ fn requeueing_for_a_new_server_drops_baselines_and_queues_every_item() {
         store.sync_upsert(VAULT, id, &clock, false).unwrap();
         store.sync_set_body(VAULT, id, b"sealed", &clock).unwrap();
     }
-    assert_eq!(store.sync_counts(VAULT).unwrap().0, 0, "nothing pending yet");
+    assert_eq!(
+        store.sync_counts(VAULT).unwrap().0,
+        0,
+        "nothing pending yet"
+    );
 
     assert_eq!(store.sync_requeue_all().expect("requeue"), 2);
 
@@ -844,5 +884,8 @@ fn requeueing_for_a_new_server_drops_baselines_and_queues_every_item() {
     let state = store.sync_state(VAULT, "item-a").unwrap().unwrap();
     assert_eq!(state.body, None, "the old server's baseline is meaningless");
     assert_eq!(state.body_clock, None);
-    assert_eq!(state.clock, clock, "the clock is kept: it still protects the item");
+    assert_eq!(
+        state.clock, clock,
+        "the clock is kept: it still protects the item"
+    );
 }

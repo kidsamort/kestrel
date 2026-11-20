@@ -77,9 +77,9 @@ impl Store {
         meta: &VaultMeta,
     ) -> Result<ItemKeys, StoreError> {
         let legacy = Self::item_key(master, meta)?;
-        let mut stmt = self.conn().prepare(
-            "SELECT item_uuid, wrapped FROM item_keys WHERE vault_uuid = ?1",
-        )?;
+        let mut stmt = self
+            .conn()
+            .prepare("SELECT item_uuid, wrapped FROM item_keys WHERE vault_uuid = ?1")?;
         let rows = stmt.query_map(params![meta.vault_uuid], |row| {
             Ok((row.get::<_, String>(0)?, row.get::<_, Vec<u8>>(1)?))
         })?;
@@ -283,14 +283,12 @@ impl Store {
         }
 
         let passkeys: Vec<(Vec<u8>, Vec<u8>)> = {
-            let mut stmt = self
-                .conn()
-                .prepare(
-                    "SELECT credential_id, key_blob FROM passkeys
+            let mut stmt = self.conn().prepare(
+                "SELECT credential_id, key_blob FROM passkeys
                      WHERE item_uuid = ?2
                        AND EXISTS (SELECT 1 FROM items i
                                    WHERE i.item_uuid = ?2 AND i.vault_uuid = ?1)",
-                )?;
+            )?;
             let rows = stmt.query_map(params![meta.vault_uuid, item_uuid], |row| {
                 Ok((row.get::<_, Vec<u8>>(0)?, row.get::<_, Vec<u8>>(1)?))
             })?;
@@ -349,7 +347,8 @@ impl Store {
                      WHERE i.vault_uuid = ?1 AND k.item_uuid IS NULL
                      ORDER BY i.item_uuid",
                 )?;
-                let rows = stmt.query_map(params![scope.vault_uuid], |row| row.get::<_, String>(0))?;
+                let rows =
+                    stmt.query_map(params![scope.vault_uuid], |row| row.get::<_, String>(0))?;
                 let mut out = Vec::new();
                 for row in rows {
                     out.push(row?);

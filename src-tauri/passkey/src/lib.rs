@@ -16,9 +16,9 @@
 pub mod cbor;
 pub mod cose;
 pub mod ipc;
-pub mod webauthn;
 #[cfg(windows)]
 pub mod registry;
+pub mod webauthn;
 
 #[cfg(windows)]
 mod com;

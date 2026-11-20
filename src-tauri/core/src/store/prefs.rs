@@ -92,10 +92,8 @@ mod tests {
 
     impl TempStore {
         fn new(name: &str) -> TempStore {
-            let path = std::env::temp_dir().join(format!(
-                "kestrel-prefs-{}-{name}.db",
-                std::process::id()
-            ));
+            let path = std::env::temp_dir()
+                .join(format!("kestrel-prefs-{}-{name}.db", std::process::id()));
             let _ = std::fs::remove_file(&path);
             let store = Store::open(&path).expect("store opens");
             TempStore { path, store }

@@ -43,19 +43,20 @@ use serde::Serialize;
 use windows::core::BSTR;
 use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, RECT, WPARAM};
 use windows::Win32::System::Com::{
-    CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_INPROC_SERVER, COINIT_APARTMENTTHREADED,
+    CoCreateInstance, CoInitializeEx, CoUninitialize, CLSCTX_INPROC_SERVER,
+    COINIT_APARTMENTTHREADED,
 };
 use windows::Win32::System::Threading::GetCurrentThreadId;
 use windows::Win32::UI::Accessibility::{
-    IUIAutomation, IUIAutomationElement, IUIAutomationValuePattern, CUIAutomation, HWINEVENTHOOK,
-    SetWinEventHook, UIA_ValuePatternId, UnhookWinEvent,
+    CUIAutomation, IUIAutomation, IUIAutomationElement, IUIAutomationValuePattern, SetWinEventHook,
+    UIA_ValuePatternId, UnhookWinEvent, HWINEVENTHOOK,
 };
 use windows::Win32::UI::WindowsAndMessaging::{
-    CallNextHookEx, DispatchMessageW, EVENT_OBJECT_FOCUS, EVENT_SYSTEM_FOREGROUND, GA_ROOT,
-    GetAncestor, GetForegroundWindow, GetMessageW, GetWindowThreadProcessId, KBDLLHOOKSTRUCT, MSG,
-    PM_NOREMOVE, PeekMessageW, PostThreadMessageW, SetWindowsHookExW, TranslateMessage,
-    UnhookWindowsHookEx, WH_KEYBOARD_LL, WINEVENT_OUTOFCONTEXT, WINEVENT_SKIPOWNPROCESS, WM_APP,
-    WM_KEYDOWN,
+    CallNextHookEx, DispatchMessageW, GetAncestor, GetForegroundWindow, GetMessageW,
+    GetWindowThreadProcessId, PeekMessageW, PostThreadMessageW, SetWindowsHookExW,
+    TranslateMessage, UnhookWindowsHookEx, EVENT_OBJECT_FOCUS, EVENT_SYSTEM_FOREGROUND, GA_ROOT,
+    KBDLLHOOKSTRUCT, MSG, PM_NOREMOVE, WH_KEYBOARD_LL, WINEVENT_OUTOFCONTEXT,
+    WINEVENT_SKIPOWNPROCESS, WM_APP, WM_KEYDOWN,
 };
 use windows_sys::Win32::Foundation::CloseHandle;
 use windows_sys::Win32::Security::{
@@ -63,8 +64,8 @@ use windows_sys::Win32::Security::{
     TOKEN_QUERY,
 };
 use windows_sys::Win32::System::Threading::{
-    OpenProcess, OpenProcessToken, PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION,
-    QueryFullProcessImageNameW,
+    OpenProcess, OpenProcessToken, QueryFullProcessImageNameW, PROCESS_NAME_WIN32,
+    PROCESS_QUERY_LIMITED_INFORMATION,
 };
 
 /// Wake-up message for the observer thread. `WM_APP` is the first value the
@@ -156,10 +157,7 @@ pub struct Worker {
 }
 
 impl Worker {
-    pub fn start(
-        ours: u32,
-        sink: impl Fn(Event) + Send + 'static,
-    ) -> Result<Worker, String> {
+    pub fn start(ours: u32, sink: impl Fn(Event) + Send + 'static) -> Result<Worker, String> {
         let (commands, inbox) = mpsc::channel::<Command>();
         let (ready, ready_rx) = mpsc::channel::<Result<u32, String>>();
 
@@ -281,18 +279,18 @@ fn observer_thread(
             return;
         }
 
-        let automation: IUIAutomation =
-            match CoCreateInstance(&CUIAutomation, None::<&windows::core::IUnknown>, CLSCTX_INPROC_SERVER)
-            {
-                Ok(value) => value,
-                Err(error) => {
-                    CoUninitialize();
-                    let _ = ready.send(Err(format!(
-                        "UI Automation is unavailable: {error}"
-                    )));
-                    return;
-                }
-            };
+        let automation: IUIAutomation = match CoCreateInstance(
+            &CUIAutomation,
+            None::<&windows::core::IUnknown>,
+            CLSCTX_INPROC_SERVER,
+        ) {
+            Ok(value) => value,
+            Err(error) => {
+                CoUninitialize();
+                let _ = ready.send(Err(format!("UI Automation is unavailable: {error}")));
+                return;
+            }
+        };
 
         CONTEXT.with(|cell| {
             *cell.borrow_mut() = Some(Context {
@@ -361,9 +359,8 @@ fn observer_thread(
                     match inbox.try_recv() {
                         Ok(Command::Stop) | Err(TryRecvError::Disconnected) => break 'pump,
                         Ok(Command::Inspect(reply)) => {
-                            let found = CONTEXT.with(|cell| {
-                                cell.borrow_mut().as_mut().and_then(inspect_locked)
-                            });
+                            let found = CONTEXT
+                                .with(|cell| cell.borrow_mut().as_mut().and_then(inspect_locked));
                             let _ = reply.send(found);
                         }
                         Ok(Command::Fill {
@@ -417,9 +414,7 @@ fn set_keyboard_hook(ctx: &mut Context, open: bool) {
             (true, None) => {
                 // On failure the webview still sees Escape when it has input
                 // focus; the picker stays usable.
-                if let Ok(hook) =
-                    SetWindowsHookExW(WH_KEYBOARD_LL, Some(keyboard_proc), None, 0)
-                {
+                if let Ok(hook) = SetWindowsHookExW(WH_KEYBOARD_LL, Some(keyboard_proc), None, 0) {
                     ctx.keyboard = Some(hook);
                 }
             }
@@ -469,9 +464,7 @@ unsafe extern "system" fn win_event_proc(
 
         let signature = (hwnd_value, id_object, id_child);
         if let Some((last_hwnd, last_object, last_child, at)) = ctx.last {
-            if (last_hwnd, last_object, last_child) == signature
-                && at.elapsed() < DEBOUNCE
-            {
+            if (last_hwnd, last_object, last_child) == signature && at.elapsed() < DEBOUNCE {
                 return;
             }
         }
@@ -482,11 +475,7 @@ unsafe extern "system" fn win_event_proc(
     });
 }
 
-unsafe extern "system" fn keyboard_proc(
-    code: i32,
-    wparam: WPARAM,
-    lparam: LPARAM,
-) -> LRESULT {
+unsafe extern "system" fn keyboard_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
     if code >= 0 && wparam.0 as u32 == WM_KEYDOWN {
         let info = &*(lparam.0 as *const KBDLLHOOKSTRUCT);
         if info.vkCode == VK_ESCAPE && ESCAPE_GATE.with(|gate| gate.get()) {
@@ -586,13 +575,11 @@ fn read_element(element: &IUIAutomationElement, event_hwnd: isize) -> Option<Ins
             .CurrentClassName()
             .map(|value| value.to_string())
             .unwrap_or_default();
-        let is_password: bool = element
-            .CurrentIsPassword()
-            .map(bool::from)
-            .unwrap_or(false);
+        let is_password: bool = element.CurrentIsPassword().map(bool::from).unwrap_or(false);
 
         let exe = process_image_name(pid).unwrap_or_default();
-        let integrity_ok = super::integrity_allows(token_integrity(pid), token_integrity(std::process::id()));
+        let integrity_ok =
+            super::integrity_allows(token_integrity(pid), token_integrity(std::process::id()));
 
         Some(Inspection {
             exe,
@@ -649,11 +636,7 @@ fn fill_locked(ctx: &mut Context, value: String, expect: ElementKey) -> Result<(
                     .to_string()
             })?;
 
-        if pattern
-            .CurrentIsReadOnly()
-            .map(bool::from)
-            .unwrap_or(false)
-        {
+        if pattern.CurrentIsReadOnly().map(bool::from).unwrap_or(false) {
             return Err("The field is read-only.".to_string());
         }
 
@@ -677,12 +660,8 @@ fn process_image_name(pid: u32) -> Option<String> {
         }
         let mut buffer = [0u16; 1024];
         let mut size = buffer.len() as u32;
-        let ok = QueryFullProcessImageNameW(
-            process,
-            PROCESS_NAME_WIN32,
-            buffer.as_mut_ptr(),
-            &mut size,
-        );
+        let ok =
+            QueryFullProcessImageNameW(process, PROCESS_NAME_WIN32, buffer.as_mut_ptr(), &mut size);
         let _ = CloseHandle(process);
         if ok == 0 || size == 0 {
             return None;
@@ -779,7 +758,9 @@ pub fn is_fillable(control_type_id: i32, is_password: bool) -> bool {
     let kind = uia::UIA_CONTROLTYPE_ID(control_type_id);
     matches!(
         kind,
-        uia::UIA_EditControlTypeId | uia::UIA_DocumentControlTypeId | uia::UIA_ComboBoxControlTypeId
+        uia::UIA_EditControlTypeId
+            | uia::UIA_DocumentControlTypeId
+            | uia::UIA_ComboBoxControlTypeId
     )
 }
 
@@ -836,13 +817,12 @@ mod tests {
         while Instant::now() < deadline {
             // A console-run test may not own the foreground; ask for it so the
             // dialog's password field really receives focus.
-            use windows::Win32::UI::WindowsAndMessaging::{
-                FindWindowW, SetForegroundWindow,
-            };
+            use windows::Win32::UI::WindowsAndMessaging::{FindWindowW, SetForegroundWindow};
             unsafe {
-                if let Ok(dialog) =
-                    FindWindowW(windows::core::w!("KestrelAutofillProbe"), windows::core::w!("Kestrel autofill probe"))
-                {
+                if let Ok(dialog) = FindWindowW(
+                    windows::core::w!("KestrelAutofillProbe"),
+                    windows::core::w!("Kestrel autofill probe"),
+                ) {
                     if !dialog.0.is_null() {
                         let _ = SetForegroundWindow(dialog);
                     }
@@ -885,10 +865,7 @@ mod tests {
         } else {
             None
         };
-        let overlay = (
-            super::super::WIDTH as i32,
-            super::super::HEIGHT as i32,
-        );
+        let overlay = (super::super::WIDTH as i32, super::super::HEIGHT as i32);
         let origin = super::super::anchored_origin(inspection.rect.clone(), overlay, area.clone());
 
         println!(
@@ -908,7 +885,10 @@ mod tests {
         );
 
         assert_eq!(inspection.exe, "autofilprobe.exe");
-        assert!(inspection.is_password, "an ES_PASSWORD Edit is a password field");
+        assert!(
+            inspection.is_password,
+            "an ES_PASSWORD Edit is a password field"
+        );
         assert_eq!(inspection.control_type, "edit");
         assert!(inspection.integrity_ok, "same user, same integrity");
         assert!(inspection.rect.width > 0 && inspection.rect.height > 0);

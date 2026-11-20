@@ -105,7 +105,9 @@ impl TestServer {
                 .build()
                 .expect("tokio runtime");
             runtime.block_on(async move {
-                let server = Server::bind(config).await.expect("the store opens and the socket binds");
+                let server = Server::bind(config)
+                    .await
+                    .expect("the store opens and the socket binds");
                 addr_tx.send(server.local_addr()).expect("address reported");
                 server
                     .run(async move {
@@ -164,7 +166,9 @@ fn the_whole_flow_over_real_tcp() {
     let alice = client(&base, &ALICE);
 
     // --- account creation ---------------------------------------------------
-    let created = alice.create_account([0x11; 32], ALICE.name).expect("create account");
+    let created = alice
+        .create_account([0x11; 32], ALICE.name)
+        .expect("create account");
     assert_eq!(created.account_id, ACCOUNT_ID);
     assert_eq!(created.account_id, alice.account_id());
 
@@ -210,7 +214,9 @@ fn the_whole_flow_over_real_tcp() {
     alice.enroll_ack(DEVICE_B).expect("ack is idempotent");
 
     // The phone's own key now authenticates.
-    let state = bob.state().expect("the claimed device is enrolled after ack");
+    let state = bob
+        .state()
+        .expect("the claimed device is enrolled after ack");
     assert_eq!(state.devices.len(), 2);
     assert!(state
         .devices
@@ -250,14 +256,24 @@ fn the_whole_flow_over_real_tcp() {
             ops: vec![PushOp::live(item, bob_clock.clone(), "ddeeff")],
         })
         .expect("push");
-    assert!(conflicted.applied.is_empty(), "a concurrent write is not applied");
+    assert!(
+        conflicted.applied.is_empty(),
+        "a concurrent write is not applied"
+    );
     assert_eq!(conflicted.conflicts.len(), 1);
-    assert_eq!(conflicted.conflicts[0].clock, alice_clock, "the server kept Alice's row");
+    assert_eq!(
+        conflicted.conflicts[0].clock, alice_clock,
+        "the server kept Alice's row"
+    );
     assert_eq!(conflicted.conflicts[0].ciphertext, "aabbcc");
 
     // The client merges and pushes a clock that dominates both.
     let mut merged = alice_clock.clone();
-    merged.extend(bob_clock.iter().map(|(device, counter)| (device.clone(), *counter)));
+    merged.extend(
+        bob_clock
+            .iter()
+            .map(|(device, counter)| (device.clone(), *counter)),
+    );
 
     let merged_push = bob
         .push(PushRequest {
@@ -272,7 +288,10 @@ fn the_whole_flow_over_real_tcp() {
     assert_eq!(page.ops[0].item_id, item);
     assert_eq!(page.ops[0].ciphertext, "ddeeff");
     assert_eq!(page.ops[0].clock, merged);
-    assert!(page.ops[0].seq > after_first, "the update moved to the end of the log");
+    assert!(
+        page.ops[0].seq > after_first,
+        "the update moved to the end of the log"
+    );
 
     // --- a tombstone --------------------------------------------------------
     let tombstone_item = "deleted-item";
@@ -349,11 +368,17 @@ fn the_whole_flow_over_real_tcp() {
         .iter()
         .find(|device| device.device_id == DEVICE_B)
         .expect("the revoked row is kept");
-    assert!(phone.revoked_at.is_some(), "the row records when it was revoked");
+    assert!(
+        phone.revoked_at.is_some(),
+        "the row records when it was revoked"
+    );
 
     // A device cannot revoke itself through this client either: the service
     // refuses, and the typed error survives.
-    match alice.revoke_device(DEVICE_A).expect_err("self-revoke is refused") {
+    match alice
+        .revoke_device(DEVICE_A)
+        .expect_err("self-revoke is refused")
+    {
         Error::Rejected { code, .. } => assert_eq!(code, "invalid_field"),
         other => panic!("expected a rejection, got {other}"),
     }
@@ -368,7 +393,9 @@ fn a_wrong_signing_key_is_a_typed_401() {
     let server = TestServer::start();
     let base = format!("http://{}", server.addr);
     let alice = client(&base, &ALICE);
-    alice.create_account([0x11; 32], ALICE.name).expect("create account");
+    alice
+        .create_account([0x11; 32], ALICE.name)
+        .expect("create account");
 
     // The right device id, the wrong key: the signature does not verify.
     let impostor = SyncClient::new(ClientConfig {
@@ -419,7 +446,11 @@ fn a_protocol_version_mismatch_is_reported() {
             message,
         } => {
             assert_eq!(code, "unsupported_protocol");
-            assert_eq!(server_protocol.as_deref(), Some("1"), "the service says what it speaks");
+            assert_eq!(
+                server_protocol.as_deref(),
+                Some("1"),
+                "the service says what it speaks"
+            );
             assert!(message.contains("protocol"), "{message}");
         }
         other => panic!("expected a protocol-version error, got {other}"),
@@ -441,7 +472,9 @@ impl VersionRewriter {
     fn start(upstream: SocketAddr) -> VersionRewriter {
         let listener = TcpListener::bind("127.0.0.1:0").expect("relay binds");
         let addr = listener.local_addr().expect("relay address");
-        listener.set_nonblocking(true).expect("nonblocking listener");
+        listener
+            .set_nonblocking(true)
+            .expect("nonblocking listener");
 
         let stop = Arc::new(AtomicBool::new(false));
         let flag = Arc::clone(&stop);
@@ -502,9 +535,7 @@ fn relay_one(mut client: TcpStream, upstream: SocketAddr) {
         return;
     };
     let _ = server.set_read_timeout(Some(Duration::from_secs(10)));
-    if server.write_all(rewritten.as_bytes()).is_err()
-        || server.write_all(&request_body).is_err()
-    {
+    if server.write_all(rewritten.as_bytes()).is_err() || server.write_all(&request_body).is_err() {
         return;
     }
 

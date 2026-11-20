@@ -130,11 +130,17 @@ fn category_and_favourite_filters_scope_items_and_total() {
     let mut favourite_login = Item::new(Category::Login, "Mail".into());
     favourite_login.favorite = true;
     let mut plain_login = Item::new(Category::Login, "Bank".into());
-    plain_login.fields.push(text_field("username", "username", "bob", false));
+    plain_login
+        .fields
+        .push(text_field("username", "username", "bob", false));
     store.save_item(&master, &meta, favourite_login).unwrap();
     store.save_item(&master, &meta, plain_login).unwrap();
     store
-        .save_item(&master, &meta, Item::new(Category::SecureNote, "Recipe".into()))
+        .save_item(
+            &master,
+            &meta,
+            Item::new(Category::SecureNote, "Recipe".into()),
+        )
         .unwrap();
 
     let logins = store
@@ -226,7 +232,14 @@ fn search_finds_non_secret_fields_notes_tags_and_urls() {
     item.notes = "rotated quarterly".into();
     let saved = store.save_item(&master, &meta, item).unwrap();
 
-    let cases = ["deploy-bot", "DEPLOY", "acme", "production", "quarterly", "acme.example"];
+    let cases = [
+        "deploy-bot",
+        "DEPLOY",
+        "acme",
+        "production",
+        "quarterly",
+        "acme.example",
+    ];
     for needle in cases {
         let page = store
             .list_page(&master, &meta, needle, None, false, 10, 0)
@@ -311,7 +324,10 @@ fn passwords_and_sensitive_fields_never_reach_the_search_index() {
             "the unpaged API must not match {secret:?} either"
         );
     }
-    assert!(projection.contains("clerk"), "non-secret values stay searchable");
+    assert!(
+        projection.contains("clerk"),
+        "non-secret values stay searchable"
+    );
     assert!(projection.contains("bank"), "the title stays searchable");
 
     // The positive control proves the item exists and is listed.

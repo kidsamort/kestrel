@@ -206,7 +206,12 @@ fn required_argument<'a>(
         .get(name)
         .and_then(Value::as_str)
         .filter(|value| !value.is_empty())
-        .ok_or_else(|| (INVALID_PARAMS, format!("get_secret needs a non-empty {name:?}")))
+        .ok_or_else(|| {
+            (
+                INVALID_PARAMS,
+                format!("get_secret needs a non-empty {name:?}"),
+            )
+        })
 }
 
 /// The app's shape is always `{"ok":bool, ...}`. A refused read becomes the
@@ -336,8 +341,7 @@ fn read_message<R: std::io::BufRead>(
     line: &mut Vec<u8>,
 ) -> std::io::Result<Option<Message>> {
     line.clear();
-    let mut limited: std::io::Take<&mut R> =
-        std::io::Read::take(&mut *reader, MAX_LINE as u64);
+    let mut limited: std::io::Take<&mut R> = std::io::Read::take(&mut *reader, MAX_LINE as u64);
     let read = limited.read_until(b'\n', line)?;
     if read == 0 {
         return Ok(None);
@@ -422,7 +426,10 @@ mod tests {
 
     impl Backend for FakePipe {
         fn call(&self, request: &Value) -> Result<Value, PipeError> {
-            self.requests.lock().expect("requests").push(request.clone());
+            self.requests
+                .lock()
+                .expect("requests")
+                .push(request.clone());
             match request["op"].as_str() {
                 Some("secrets.list") => Ok(json!({
                     "ok": true,
@@ -528,7 +535,11 @@ mod tests {
                     "params": { "protocolVersion": offered }
                 }),
             );
-            assert_eq!(response["result"]["protocolVersion"], json!(expected), "{offered}");
+            assert_eq!(
+                response["result"]["protocolVersion"],
+                json!(expected),
+                "{offered}"
+            );
         }
     }
 
@@ -554,9 +565,7 @@ mod tests {
             &mut server,
             json!({ "jsonrpc": "2.0", "id": 3, "method": "tools/list" }),
         );
-        let tools = response["result"]["tools"]
-            .as_array()
-            .expect("tools array");
+        let tools = response["result"]["tools"].as_array().expect("tools array");
         let names: Vec<&str> = tools
             .iter()
             .map(|tool| tool["name"].as_str().expect("tool name"))
@@ -594,7 +603,9 @@ mod tests {
         assert_eq!(requests[0]["op"], json!("secrets.list"));
         assert_eq!(requests[0]["token"], json!(TOKEN));
         assert!(
-            !requests.iter().any(|request| request["op"] == json!("items.reveal")),
+            !requests
+                .iter()
+                .any(|request| request["op"] == json!("items.reveal")),
             "listing must never reveal: {requests:?}"
         );
     }
@@ -716,7 +727,10 @@ mod tests {
             (b"{".as_slice(), PARSE_ERROR),
             (b"[]".as_slice(), INVALID_REQUEST),
             (b"42".as_slice(), INVALID_REQUEST),
-            (br#"{"jsonrpc":"1.0","id":1,"method":"ping"}"#.as_slice(), INVALID_REQUEST),
+            (
+                br#"{"jsonrpc":"1.0","id":1,"method":"ping"}"#.as_slice(),
+                INVALID_REQUEST,
+            ),
             (br#"{"jsonrpc":"2.0","id":1}"#.as_slice(), INVALID_REQUEST),
         ] {
             let response = server.handle_line(line).expect("an error response");

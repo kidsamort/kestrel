@@ -144,8 +144,7 @@ fn accept_loop(pipe: Handle, app: AppHandle, stop: Arc<AtomicBool>) {
             break;
         }
         let connected = unsafe {
-            ConnectNamedPipe(pipe.0, null_mut()) != 0
-                || GetLastError() == ERROR_PIPE_CONNECTED
+            ConnectNamedPipe(pipe.0, null_mut()) != 0 || GetLastError() == ERROR_PIPE_CONNECTED
         };
         if !connected {
             if stop.load(Ordering::SeqCst) {
@@ -173,8 +172,7 @@ fn serve_one(pipe: &Handle, app: &AppHandle) {
             Err(error) if error.kind() == std::io::ErrorKind::UnexpectedEof => return Ok(()),
             Err(error) => return Err(error),
         }
-        let length =
-            u32::from_le_bytes([header[1], header[2], header[3], header[4]]) as usize;
+        let length = u32::from_le_bytes([header[1], header[2], header[3], header[4]]) as usize;
         if length > kestrel_passkey::ipc::MAX_FRAME {
             return Ok(());
         }

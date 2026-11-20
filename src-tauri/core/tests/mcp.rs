@@ -121,7 +121,10 @@ fn re_pairing_replaces_the_allowlist_and_clearing_ends_access() {
     state
         .mcp_set_grants(
             "editor",
-            &[(item.id.clone(), password.clone()), (item.id.clone(), username.clone())],
+            &[
+                (item.id.clone(), password.clone()),
+                (item.id.clone(), username.clone()),
+            ],
         )
         .expect("first allowlist");
     assert_eq!(state.mcp_grants().expect("grants").len(), 2);
@@ -158,7 +161,9 @@ fn a_grant_must_name_a_real_item_and_field() {
         Err(VaultError::FieldNotFound)
     ));
     assert!(
-        state.mcp_set_grants("editor", &[("no-such-item".into(), password)]).is_err(),
+        state
+            .mcp_set_grants("editor", &[("no-such-item".into(), password)])
+            .is_err(),
         "a missing item cannot be granted"
     );
     assert!(state.mcp_grants().expect("grants").is_empty());
@@ -182,7 +187,10 @@ fn a_locked_vault_refuses_a_reveal_even_with_a_grant() {
         state.mcp_reveal("editor", &item.id, &password),
         Err(VaultError::Locked)
     ));
-    assert!(state.mcp_audit(10).is_err(), "a locked vault has no session");
+    assert!(
+        state.mcp_audit(10).is_err(),
+        "a locked vault has no session"
+    );
 }
 
 /* ------------------------------------------------------------ lifetime rules */
@@ -273,7 +281,10 @@ fn a_one_shot_grant_is_spent_by_the_first_successful_read() {
         "the second read has no grant left"
     );
     assert!(
-        state.grants_for("mcp", "editor").expect("grants").is_empty(),
+        state
+            .grants_for("mcp", "editor")
+            .expect("grants")
+            .is_empty(),
         "the spent row is gone"
     );
     assert_eq!(
@@ -540,7 +551,10 @@ fn a_second_open_of_the_same_vault_is_a_no_op_and_keeps_grants() {
         "the audit row written before the second open is still there"
     );
     assert!(
-        second.grants_for("cli", "terminal").expect("grants").is_empty(),
+        second
+            .grants_for("cli", "terminal")
+            .expect("grants")
+            .is_empty(),
         "the spent one-shot row was not resurrected"
     );
     assert!(matches!(

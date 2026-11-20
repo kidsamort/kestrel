@@ -91,10 +91,7 @@ pub fn canonical_origin(raw: &str) -> Option<String> {
     if scheme != "http" && scheme != "https" {
         return None;
     }
-    let authority = rest
-        .split(['/', '?', '#'])
-        .next()
-        .unwrap_or_default();
+    let authority = rest.split(['/', '?', '#']).next().unwrap_or_default();
     if authority.is_empty() || authority.contains('@') || authority.chars().any(char::is_whitespace)
     {
         return None;
@@ -205,9 +202,9 @@ impl Store {
 
     /// Every explicit rule, alphabetically by origin.
     pub fn browser_rules(&self) -> Result<Vec<BrowserRuleRow>, StoreError> {
-        let mut stmt = self.conn().prepare(
-            "SELECT origin, mode, updated_at FROM browser_sites ORDER BY origin",
-        )?;
+        let mut stmt = self
+            .conn()
+            .prepare("SELECT origin, mode, updated_at FROM browser_sites ORDER BY origin")?;
         let rows = stmt.query_map([], |row| {
             Ok(BrowserRuleRow {
                 origin: row.get(0)?,
@@ -274,10 +271,8 @@ mod tests {
 
     impl TempStore {
         fn new() -> TempStore {
-            let path = std::env::temp_dir().join(format!(
-                "kestrel-browser-{}.db",
-                uuid::Uuid::new_v4()
-            ));
+            let path =
+                std::env::temp_dir().join(format!("kestrel-browser-{}.db", uuid::Uuid::new_v4()));
             let store = Store::open(&path).expect("store opens");
             TempStore { path, store }
         }
@@ -396,7 +391,10 @@ mod tests {
             "a path never creates a second key"
         );
 
-        assert!(temp.store.clear_browser_rule("https://example.com").unwrap());
+        assert!(temp
+            .store
+            .clear_browser_rule("https://example.com")
+            .unwrap());
         assert_eq!(
             temp.store.browser_rule("https://example.com").unwrap(),
             "ask"

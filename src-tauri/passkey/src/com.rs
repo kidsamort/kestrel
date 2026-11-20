@@ -96,8 +96,7 @@ struct CancelOperationRequest {
 
 #[repr(C)]
 struct AuthenticatorVtbl {
-    query_interface:
-        unsafe extern "system" fn(*mut c_void, *const Guid, *mut *mut c_void) -> i32,
+    query_interface: unsafe extern "system" fn(*mut c_void, *const Guid, *mut *mut c_void) -> i32,
     add_ref: unsafe extern "system" fn(*mut c_void) -> u32,
     release: unsafe extern "system" fn(*mut c_void) -> u32,
     make_credential: unsafe extern "system" fn(
@@ -110,8 +109,7 @@ struct AuthenticatorVtbl {
         *const OperationRequest,
         *mut OperationResponse,
     ) -> i32,
-    cancel_operation:
-        unsafe extern "system" fn(*mut c_void, *const CancelOperationRequest) -> i32,
+    cancel_operation: unsafe extern "system" fn(*mut c_void, *const CancelOperationRequest) -> i32,
     get_lock_status: unsafe extern "system" fn(*mut c_void, *mut u32) -> i32,
 }
 
@@ -135,8 +133,7 @@ static AUTHENTICATOR_VTBL: AuthenticatorVtbl = AuthenticatorVtbl {
 
 #[repr(C)]
 struct ClassFactoryVtbl {
-    query_interface:
-        unsafe extern "system" fn(*mut c_void, *const Guid, *mut *mut c_void) -> i32,
+    query_interface: unsafe extern "system" fn(*mut c_void, *const Guid, *mut *mut c_void) -> i32,
     add_ref: unsafe extern "system" fn(*mut c_void) -> u32,
     release: unsafe extern "system" fn(*mut c_void) -> u32,
     create_instance:

@@ -189,7 +189,8 @@ fn client(
         signing_key: *keys.signing_secret(),
         allow_insecure: false,
     };
-    let client = SyncClient::new(config).map_err(|failure| VaultError::Invalid(failure.to_string()))?;
+    let client =
+        SyncClient::new(config).map_err(|failure| VaultError::Invalid(failure.to_string()))?;
     Ok((client, account_id, device_id))
 }
 
@@ -401,8 +402,7 @@ pub fn sync_invite(
         .with_unlocked(|store, master, _meta| {
             let (client, _account_id, _device_id) = client(&server, store, master)?;
             let code = store.account_enrol_code();
-            let sealed = store
-                .account_seal_for_device(master, &code.code, &guest_agreement_pub)?;
+            let sealed = store.account_seal_for_device(master, &code.code, &guest_agreement_pub)?;
             let bytes = decode_hex(&sealed.sealed)?;
             // The service refuses an expiry more than an hour ahead of its own
             // clock; stay a minute inside the cap.
@@ -464,9 +464,7 @@ pub fn sync_enroll_ack(
     state
         .with_unlocked(|store, master, _meta| {
             let (client, _account_id, _device_id) = client(&server, store, master)?;
-            client
-                .enroll_ack(&guest_device_id)
-                .map_err(wire_error)
+            client.enroll_ack(&guest_device_id).map_err(wire_error)
         })
         .map_err(err)
 }
@@ -527,7 +525,9 @@ fn hex_to_32(hex_text: &str) -> Result<[u8; 32], VaultError> {
 
 fn decode_hex(hex_text: &str) -> Result<Vec<u8>, VaultError> {
     if hex_text.len() % 2 != 0 {
-        return Err(VaultError::Invalid("hex text has an odd length".to_string()));
+        return Err(VaultError::Invalid(
+            "hex text has an odd length".to_string(),
+        ));
     }
     let mut out = Vec::with_capacity(hex_text.len() / 2);
     let bytes = hex_text.as_bytes();

@@ -73,7 +73,8 @@ unsafe extern "system" {
 
 /// `{6B9A7C4E-1F2D-4E83-9B6A-3C5D7E8F9A01}`, upper-case for the registry.
 pub const CLSID_KEY: &str = r"Software\Classes\CLSID\{6B9A7C4E-1F2D-4E83-9B6A-3C5D7E8F9A01}";
-const INPROC_KEY: &str = r"Software\Classes\CLSID\{6B9A7C4E-1F2D-4E83-9B6A-3C5D7E8F9A01}\InprocServer32";
+const INPROC_KEY: &str =
+    r"Software\Classes\CLSID\{6B9A7C4E-1F2D-4E83-9B6A-3C5D7E8F9A01}\InprocServer32";
 
 /// `webauthnplugin.h` spells the DLL `WebAuthnPlugin.dll`; older preview builds
 /// shipped the same functions in `webauthn.dll`, so both are tried.
@@ -98,8 +99,8 @@ pub enum RegistryError {
 
 /// The DLL Windows will load for the registered CLSID.
 pub fn plugin_dll_path() -> Result<PathBuf, RegistryError> {
-    let exe = std::env::current_exe()
-        .map_err(|error| RegistryError::MissingDll(error.to_string()))?;
+    let exe =
+        std::env::current_exe().map_err(|error| RegistryError::MissingDll(error.to_string()))?;
     let directory = exe
         .parent()
         .ok_or_else(|| RegistryError::MissingDll("kestrel.exe has no parent directory".into()))?;
@@ -245,7 +246,10 @@ fn read_default(hive_key: Hkey) -> Result<Option<String>, RegistryError> {
             .chunks_exact(2)
             .map(|pair| u16::from_le_bytes([pair[0], pair[1]]))
             .collect();
-        let length = units.iter().position(|unit| *unit == 0).unwrap_or(units.len());
+        let length = units
+            .iter()
+            .position(|unit| *unit == 0)
+            .unwrap_or(units.len());
         Ok(Some(String::from_utf16_lossy(&units[..length])))
     }
 }
@@ -255,13 +259,7 @@ pub fn registered_dll() -> Result<Option<String>, RegistryError> {
     let inproc = wide(INPROC_KEY);
     unsafe {
         let mut key: Hkey = std::ptr::null_mut();
-        let status = RegOpenKeyExW(
-            HKEY_CURRENT_USER,
-            inproc.as_ptr(),
-            0,
-            KEY_READ,
-            &mut key,
-        );
+        let status = RegOpenKeyExW(HKEY_CURRENT_USER, inproc.as_ptr(), 0, KEY_READ, &mut key);
         if status == ERROR_FILE_NOT_FOUND {
             return Ok(None);
         }
@@ -289,13 +287,7 @@ pub fn unregister() -> Result<bool, RegistryError> {
             return Err(RegistryError::Win32(status));
         }
         let mut key: Hkey = std::ptr::null_mut();
-        let status = RegOpenKeyExW(
-            HKEY_CURRENT_USER,
-            clsid.as_ptr(),
-            0,
-            KEY_READ,
-            &mut key,
-        );
+        let status = RegOpenKeyExW(HKEY_CURRENT_USER, clsid.as_ptr(), 0, KEY_READ, &mut key);
         if status == ERROR_FILE_NOT_FOUND {
             return Ok(false);
         }
@@ -396,11 +388,15 @@ impl PluginApi {
                 let add = GetProcAddress(module, c"WebAuthNPluginAddAuthenticator".as_ptr().cast());
                 let remove =
                     GetProcAddress(module, c"WebAuthNPluginRemoveAuthenticator".as_ptr().cast());
-                let state =
-                    GetProcAddress(module, c"WebAuthNPluginGetAuthenticatorState".as_ptr().cast());
+                let state = GetProcAddress(
+                    module,
+                    c"WebAuthNPluginGetAuthenticatorState".as_ptr().cast(),
+                );
                 let free = GetProcAddress(
                     module,
-                    c"WebAuthNPluginFreeAddAuthenticatorResponse".as_ptr().cast(),
+                    c"WebAuthNPluginFreeAddAuthenticatorResponse"
+                        .as_ptr()
+                        .cast(),
                 );
                 if add.is_null() || remove.is_null() || state.is_null() || free.is_null() {
                     FreeLibrary(module);

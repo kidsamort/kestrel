@@ -151,9 +151,14 @@ pub fn resolve_conflict(
 
     match choice {
         ResolveChoice::Mine => keep_local(ctx, item_id, &local, &clock)?,
-        ResolveChoice::Theirs => {
-            take_remote(ctx, item_id, &remote, &row.remote_body, &row.remote_clock, &clock)?
-        }
+        ResolveChoice::Theirs => take_remote(
+            ctx,
+            item_id,
+            &remote,
+            &row.remote_body,
+            &row.remote_clock,
+            &clock,
+        )?,
         ResolveChoice::Both => {
             keep_local(ctx, item_id, &local, &clock)?;
             duplicate_remote(ctx, &remote, &clock)?;
@@ -163,10 +168,8 @@ pub fn resolve_conflict(
     ctx.store
         .sync_conflict_clear(&ctx.meta.vault_uuid, item_id)?;
     let conflicts = u64::from(ctx.store.sync_counts(&ctx.meta.vault_uuid)?.1);
-    ctx.store.sync_meta_set(
-        "state",
-        if conflicts == 0 { "idle" } else { "conflict" },
-    )?;
+    ctx.store
+        .sync_meta_set("state", if conflicts == 0 { "idle" } else { "conflict" })?;
     ctx.store.sync_meta_remove("error")?;
     Ok(())
 }
@@ -306,10 +309,7 @@ fn render(path: &str, local: &SyncBody, remote: &SyncBody) -> Option<ConflictFie
     Some(rendered)
 }
 
-fn field_at<'a>(
-    body: &'a SyncBody,
-    field_id: &str,
-) -> Option<&'a kestrel_core::model::Field> {
+fn field_at<'a>(body: &'a SyncBody, field_id: &str) -> Option<&'a kestrel_core::model::Field> {
     body.item.fields.iter().find(|field| field.id == field_id)
 }
 

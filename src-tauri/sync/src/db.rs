@@ -374,7 +374,14 @@ impl Store {
                  created_at = excluded.created_at,
                  claimed_at = NULL, claimed_signing_pub = NULL,
                  claimed_agreement_pub = NULL, claimed_name = NULL",
-            params![account_id, new_device_id, code_hash, sealed, expires_at, now],
+            params![
+                account_id,
+                new_device_id,
+                code_hash,
+                sealed,
+                expires_at,
+                now
+            ],
         )?;
         tx.commit()?;
         Ok(OfferOutcome::Stored)

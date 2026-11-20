@@ -39,9 +39,7 @@ fn to_hex(bytes: &[u8]) -> String {
 fn unhex(text: &str) -> Vec<u8> {
     text.as_bytes()
         .chunks(2)
-        .map(|pair| {
-            u8::from_str_radix(std::str::from_utf8(pair).expect("ascii"), 16).expect("hex")
-        })
+        .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).expect("ascii"), 16).expect("hex"))
         .collect()
 }
 
@@ -155,7 +153,10 @@ fn account_create_seals_both_keys_and_returns_the_secret_once() {
 
     let status = store.account_status().expect("status");
     assert!(status.exists && status.secret_key_set);
-    assert_eq!(status.account_id.as_deref(), Some(created.account_id.as_str()));
+    assert_eq!(
+        status.account_id.as_deref(),
+        Some(created.account_id.as_str())
+    );
     assert_eq!(
         status.device_count, 1,
         "creating the account also creates device 1's keypair"
@@ -263,7 +264,8 @@ fn the_store_seals_this_accounts_key_to_a_device() {
         open_sealed_account(&second_secret, &code, &unhex(&second.sealed)).expect("open second");
     // Two envelopes, two sender ephemerals, one account key: what the first
     // recovers decrypts what the second recovers.
-    let probe = crypto::encrypt(first_key.account_key(), b"account", b"same key").expect("seal probe");
+    let probe =
+        crypto::encrypt(first_key.account_key(), b"account", b"same key").expect("seal probe");
     assert_eq!(
         crypto::decrypt(second_key.account_key(), b"account", &probe).expect("decrypt probe"),
         b"same key"
@@ -284,9 +286,7 @@ fn the_store_seals_this_accounts_key_to_a_device() {
     // A malformed agreement key is refused, not silently truncated.
     for bad in ["", "00", &"zz".repeat(32)] {
         assert!(
-            store
-                .account_seal_for_device(&master, &code, bad)
-                .is_err(),
+            store.account_seal_for_device(&master, &code, bad).is_err(),
             "rejected malformed device key {bad:?}"
         );
     }
@@ -357,7 +357,10 @@ fn revoking_a_mirrored_device_keeps_the_row_and_refuses_self() {
         .expect("devices after forget")
         .iter()
         .all(|device| device.device_id != remote));
-    assert!(store.forget_device(remote).is_err(), "nothing left to forget");
+    assert!(
+        store.forget_device(remote).is_err(),
+        "nothing left to forget"
+    );
     assert!(store.mark_device_revoked(remote).is_err(), "row is gone");
 }
 
@@ -370,7 +373,10 @@ fn item_keys_are_created_lazily_and_old_items_are_resealed() {
     // Before the backfill the row has no key of its own and still opens: the
     // legacy vault key is the documented fallback.
     assert_eq!(
-        store.get(&master, &meta, "legacy-item").expect("read legacy").title,
+        store
+            .get(&master, &meta, "legacy-item")
+            .expect("read legacy")
+            .title,
         "before per-item keys"
     );
     assert_eq!(item_counts(&path), (1, 0), "no item key yet");
@@ -385,7 +391,10 @@ fn item_keys_are_created_lazily_and_old_items_are_resealed() {
     let after = item_blob(&path, "legacy-item");
     assert_ne!(before, after, "the item blob was re-sealed");
     assert_eq!(
-        store.get(&master, &meta, "legacy-item").expect("read migrated").title,
+        store
+            .get(&master, &meta, "legacy-item")
+            .expect("read migrated")
+            .title,
         "before per-item keys"
     );
 
@@ -393,23 +402,41 @@ fn item_keys_are_created_lazily_and_old_items_are_resealed() {
     let mut item = store.get(&master, &meta, "legacy-item").expect("read");
     item.title = "edited after migration".into();
     store.save_item(&master, &meta, item).expect("save");
-    assert_eq!(item_counts(&path), (1, 1), "the key is reused, not duplicated");
     assert_eq!(
-        store.get(&master, &meta, "legacy-item").expect("read").title,
+        item_counts(&path),
+        (1, 1),
+        "the key is reused, not duplicated"
+    );
+    assert_eq!(
+        store
+            .get(&master, &meta, "legacy-item")
+            .expect("read")
+            .title,
         "edited after migration"
     );
 
     // Idempotent and resumable: a second run finds nothing to do and rewrites
     // nothing.
     let settled = item_blob(&path, "legacy-item");
-    assert_eq!(store.backfill_item_keys(&master, &meta).expect("backfill again"), 0);
+    assert_eq!(
+        store
+            .backfill_item_keys(&master, &meta)
+            .expect("backfill again"),
+        0
+    );
     assert_eq!(item_blob(&path, "legacy-item"), settled);
 
     // A brand-new item gets a key at save time, with no backfill involved.
     let mut fresh = Item::new(Category::Login, "new item".into());
     fresh.id = "brand-new-item".into();
-    store.save_item(&master, &meta, fresh).expect("save new item");
-    assert_eq!(item_counts(&path), (2, 2), "new items are keyed immediately");
+    store
+        .save_item(&master, &meta, fresh)
+        .expect("save new item");
+    assert_eq!(
+        item_counts(&path),
+        (2, 2),
+        "new items are keyed immediately"
+    );
 }
 
 #[test]
@@ -428,9 +455,11 @@ fn unlock_backfills_item_keys_and_the_account_survives_lock() {
     let (salt, account_uuid, vault_uuid) = {
         let conn = Connection::open(&path).expect("second connection");
         let read = |key: &str| -> String {
-            conn.query_row("SELECT value FROM meta WHERE key = ?1", params![key], |row| {
-                row.get::<_, Vec<u8>>(0)
-            })
+            conn.query_row(
+                "SELECT value FROM meta WHERE key = ?1",
+                params![key],
+                |row| row.get::<_, Vec<u8>>(0),
+            )
             .map(|bytes| String::from_utf8_lossy(&bytes).into_owned())
             .expect("meta")
         };
@@ -484,7 +513,11 @@ fn unlock_backfills_item_keys_and_the_account_survives_lock() {
     state.lock().expect("lock again");
     state.unlock(PASSWORD).expect("unlock again");
     assert_eq!(
-        state.account_status().expect("status").account_id.as_deref(),
+        state
+            .account_status()
+            .expect("status")
+            .account_id
+            .as_deref(),
         Some(account_id.as_str())
     );
 }
@@ -543,7 +576,9 @@ fn account_and_item_keys_survive_a_master_password_change() {
 fn generated_device_keypairs_move_the_account_key_end_to_end() {
     let (_sender_dir, sender_path) = scratch();
     let (sender, sender_master, _meta) = initialised(&sender_path);
-    let created = sender.account_create(&sender_master).expect("create account");
+    let created = sender
+        .account_create(&sender_master)
+        .expect("create account");
     let code = sender.account_enrol_code().code.clone();
 
     let (_receiver_dir, receiver_path) = scratch();
@@ -645,7 +680,10 @@ fn claim_writes_both_rows_and_a_lock_keeps_them() {
     receiver.unlock(PASSWORD).expect("unlock");
 
     let after = receiver.account_status().expect("status after unlock");
-    assert_eq!(after.account_id.as_deref(), Some(created.account_id.as_str()));
+    assert_eq!(
+        after.account_id.as_deref(),
+        Some(created.account_id.as_str())
+    );
     assert_eq!(after.device_count, 1);
     let devices = receiver.account_devices().expect("devices after unlock");
     assert_eq!(devices.len(), 1);
@@ -683,7 +721,11 @@ fn claim_refuses_a_wrong_code_tampered_blob_and_wrong_sender_identically() {
     let middle = envelope.len() / 2;
     envelope[middle] ^= 0x01;
 
-    let wrong_code = sender.account_enrol_code().expect("another code").code.clone();
+    let wrong_code = sender
+        .account_enrol_code()
+        .expect("another code")
+        .code
+        .clone();
     let wrong_sender = to_hex(&agreement_public(&agreement_secret()));
 
     let code_error = receiver
@@ -699,7 +741,10 @@ fn claim_refuses_a_wrong_code_tampered_blob_and_wrong_sender_identically() {
         .expect_err("a sender key that is not in the blob must not claim")
         .to_string();
 
-    assert_eq!(code_error, blob_error, "the code and the blob look the same");
+    assert_eq!(
+        code_error, blob_error,
+        "the code and the blob look the same"
+    );
     assert_eq!(code_error, sender_error, "the sender key looks the same");
     assert!(
         code_error.contains("does not open an account"),
@@ -710,10 +755,7 @@ fn claim_refuses_a_wrong_code_tampered_blob_and_wrong_sender_identically() {
     receiver
         .account_enroll_claim(&code, &sealed.sealed, &sealed.sender_agreement_pub)
         .expect("the valid triple claims");
-    assert_eq!(
-        receiver.account_status().expect("status").device_count,
-        1
-    );
+    assert_eq!(receiver.account_status().expect("status").device_count, 1);
 }
 
 /// The keys the card would draw are the keys the claim records, and the stored
@@ -724,7 +766,10 @@ fn the_joining_device_card_shows_the_keys_the_claim_records() {
     let (store, master, _meta) = initialised(&path);
     let identity = store.device_identity(&master).expect("card keys");
     let again = store.device_identity(&master).expect("card keys again");
-    assert_eq!(again, identity, "the keypair is generated once, not per view");
+    assert_eq!(
+        again, identity,
+        "the keypair is generated once, not per view"
+    );
     assert_eq!(identity.device_id.len(), 32);
     assert_eq!(identity.signing_pub.len(), 64);
     assert_eq!(identity.agreement_pub.len(), 64);
@@ -811,15 +856,21 @@ fn a_v9_database_gains_the_device_key_columns_and_a_nullable_secret_key() {
     let state = VaultState::open(path.clone()).expect("v9 vault upgrades");
     let conn = rusqlite::Connection::open(&path).expect("raw open");
     let columns = |table: &str| -> Vec<String> {
-        let mut stmt = conn.prepare(&format!("PRAGMA table_info({table})")).expect("pragma");
+        let mut stmt = conn
+            .prepare(&format!("PRAGMA table_info({table})"))
+            .expect("pragma");
         stmt.query_map([], |row| row.get::<_, String>(1))
             .expect("rows")
             .map(|name| name.expect("name"))
             .collect()
     };
     let device_columns = columns("devices");
-    assert!(device_columns.iter().any(|name| name == "signing_key_wrapped"));
-    assert!(device_columns.iter().any(|name| name == "agreement_key_wrapped"));
+    assert!(device_columns
+        .iter()
+        .any(|name| name == "signing_key_wrapped"));
+    assert!(device_columns
+        .iter()
+        .any(|name| name == "agreement_key_wrapped"));
     let secret_notnull: i64 = conn
         .query_row(
             "SELECT \"notnull\" FROM pragma_table_info('account') WHERE name = 'secret_key'",

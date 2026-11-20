@@ -132,8 +132,7 @@ impl Store {
             let item_keys = items
                 .iter()
                 .filter_map(|(item, _, _)| {
-                    keys.get(&item.id)
-                        .map(|key| (item.id.clone(), key.clone()))
+                    keys.get(&item.id).map(|key| (item.id.clone(), key.clone()))
                 })
                 .collect();
             payloads.push(VaultPayload {

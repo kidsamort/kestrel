@@ -37,7 +37,8 @@ const AAD_PREFIX: &[u8] = b"kestrel/sync/v1|";
 /// separator, and the prefix has a fixed length.
 pub fn sync_aad(account: &str, item_id: &str, clock: &Clock) -> Vec<u8> {
     let clock = serde_json::to_vec(clock).unwrap_or_default();
-    let mut aad = Vec::with_capacity(AAD_PREFIX.len() + account.len() + item_id.len() + clock.len() + 3);
+    let mut aad =
+        Vec::with_capacity(AAD_PREFIX.len() + account.len() + item_id.len() + clock.len() + 3);
     aad.extend_from_slice(AAD_PREFIX);
     aad.extend_from_slice(account.as_bytes());
     aad.push(b'|');

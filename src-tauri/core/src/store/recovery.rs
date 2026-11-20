@@ -277,9 +277,10 @@ impl Store {
     /// key that wrote it.
     fn verify_master(&self, master: &SymKey, meta: &VaultMeta) -> Result<(), StoreError> {
         let vault_key = Self::vault_key(master, &meta.vault_uuid)?;
-        let plain = crypto::decrypt(&vault_key, b"kestrel/verifier", &meta.verifier).map_err(|_| {
-            StoreError::Invalid("that recovery code does not open this vault".into())
-        })?;
+        let plain =
+            crypto::decrypt(&vault_key, b"kestrel/verifier", &meta.verifier).map_err(|_| {
+                StoreError::Invalid("that recovery code does not open this vault".into())
+            })?;
         if plain != VERIFIER_PLAINTEXT {
             return Err(StoreError::Invalid(
                 "that recovery code does not open this vault".into(),

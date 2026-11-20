@@ -50,8 +50,14 @@ enum Command {
     Help,
     Status,
     List,
-    Copy { id: String, field: String },
-    Run { env: Vec<EnvSpec>, argv: Vec<String> },
+    Copy {
+        id: String,
+        field: String,
+    },
+    Run {
+        env: Vec<EnvSpec>,
+        argv: Vec<String>,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -171,7 +177,8 @@ fn parse_copy(args: &[String]) -> Result<Command, String> {
         }
     }
     Ok(Command::Copy {
-        id: id.filter(|value| !value.is_empty())
+        id: id
+            .filter(|value| !value.is_empty())
             .ok_or_else(|| "copy needs --id <item>".to_string())?,
         field: field
             .filter(|value| !value.is_empty())
@@ -193,11 +200,7 @@ fn parse_run(args: &[String]) -> Result<Command, String> {
                 argv = Some(args[index + 1..].to_vec());
                 break;
             }
-            other => {
-                return Err(format!(
-                    "run: expected --env or -- before {other}"
-                ))
-            }
+            other => return Err(format!("run: expected --env or -- before {other}")),
         }
     }
     let argv = argv.ok_or_else(|| "run needs `-- <command> [args...]`".to_string())?;
@@ -371,9 +374,7 @@ fn print_response(command: &Command, response: &Value) -> i32 {
             EXIT_OK
         }
         Command::Copy { id, field } => {
-            println!(
-                "Copied {field} from {id} to the clipboard; the vault's timer clears it."
-            );
+            println!("Copied {field} from {id} to the clipboard; the vault's timer clears it.");
             EXIT_OK
         }
         Command::Run { .. } => {
@@ -423,10 +424,7 @@ mod tests {
                 command: Command::Status
             }
         );
-        assert_eq!(
-            parse(&args("list")).expect("list").command,
-            Command::List
-        );
+        assert_eq!(parse(&args("list")).expect("list").command, Command::List);
         assert!(parse(&args("status extra")).is_err());
     }
 
@@ -448,7 +446,10 @@ mod tests {
                 .command,
             expected
         );
-        assert!(parse(&args("copy --id item-1")).is_err(), "field is required");
+        assert!(
+            parse(&args("copy --id item-1")).is_err(),
+            "field is required"
+        );
         assert!(parse(&args("copy --id item-1 --bogus x")).is_err());
     }
 

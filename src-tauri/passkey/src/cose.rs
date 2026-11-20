@@ -273,10 +273,7 @@ mod tests {
                     *item = replacement.clone();
                 }
             }
-            assert_eq!(
-                CoseKey::from_value(&Value::Map(pairs)),
-                Err(expected)
-            );
+            assert_eq!(CoseKey::from_value(&Value::Map(pairs)), Err(expected));
         }
     }
 
@@ -310,9 +307,6 @@ mod tests {
                 *item = Value::Bytes(vec![1u8; 31]);
             }
         }
-        assert_eq!(
-            CoseKey::from_value(&value),
-            Err(CoseError::BadCoordinate)
-        );
+        assert_eq!(CoseKey::from_value(&value), Err(CoseError::BadCoordinate));
     }
 }

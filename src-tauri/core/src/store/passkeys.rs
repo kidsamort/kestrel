@@ -176,10 +176,9 @@ impl Store {
              WHERE p.credential_id = ?2 AND p.rp_id = ?3",
         )?;
         let found = stmt
-            .query_row(
-                params![meta.vault_uuid, credential_id, rp_id],
-                |row| Ok((Self::passkey_row(row)?, row.get::<_, Vec<u8>>(5)?)),
-            )
+            .query_row(params![meta.vault_uuid, credential_id, rp_id], |row| {
+                Ok((Self::passkey_row(row)?, row.get::<_, Vec<u8>>(5)?))
+            })
             .optional()?;
         let Some((row, blob)) = found else {
             return Ok(None);
@@ -363,10 +362,7 @@ impl Store {
              JOIN items i ON i.item_uuid = p.item_uuid AND i.vault_uuid = ?1",
         )?;
         let rows = stmt.query_map(params![meta.vault_uuid], |row| {
-            Ok((
-                Self::passkey_row(row)?,
-                row.get::<_, Vec<u8>>(5)?,
-            ))
+            Ok((Self::passkey_row(row)?, row.get::<_, Vec<u8>>(5)?))
         })?;
         let mut out = Vec::new();
         for row in rows {
@@ -450,7 +446,9 @@ mod tests {
         let key = [7u8; 32];
         let entry = row(1);
         ensure_item(&store, &master, &meta, 1);
-        store.passkey_insert(&master, &meta, &entry, &key, 0).unwrap();
+        store
+            .passkey_insert(&master, &meta, &entry, &key, 0)
+            .unwrap();
 
         let opened = store
             .passkey_open(&master, &meta, &entry.credential_id, "example.com")
@@ -499,7 +497,10 @@ mod tests {
         assert!(store
             .passkey_delete(&meta, &entry.item_uuid, &entry.credential_id)
             .unwrap());
-        assert!(store.passkeys_for_item(&meta, &entry.item_uuid).unwrap().is_empty());
+        assert!(store
+            .passkeys_for_item(&meta, &entry.item_uuid)
+            .unwrap()
+            .is_empty());
     }
 
     #[test]

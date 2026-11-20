@@ -324,7 +324,10 @@ pub fn apply_stored_preference(app: &AppHandle) {
         Err(_) => (true, None),
     };
     if let Some(chord) = chord {
-        if chord.parse::<tauri_plugin_global_shortcut::Shortcut>().is_ok() {
+        if chord
+            .parse::<tauri_plugin_global_shortcut::Shortcut>()
+            .is_ok()
+        {
             let status = app.state::<QuickStatus>();
             let mut inner = status.inner.lock().expect("quick status mutex");
             inner.chord = chord;
@@ -339,7 +342,10 @@ pub fn apply_stored_preference(app: &AppHandle) {
 #[tauri::command]
 pub fn quick_set_shortcut(app: AppHandle, chord: String) -> Result<QuickStatusDto, String> {
     let trimmed = chord.trim().to_string();
-    if trimmed.parse::<tauri_plugin_global_shortcut::Shortcut>().is_err() {
+    if trimmed
+        .parse::<tauri_plugin_global_shortcut::Shortcut>()
+        .is_err()
+    {
         return Err(format!("{trimmed} is not a chord this system accepts"));
     }
     let previous = {

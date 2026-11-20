@@ -103,7 +103,7 @@ mod tests {
     use serde_json::json;
     use std::ptr::{null, null_mut};
     use windows_sys::Win32::Foundation::{
-        CloseHandle, GetLastError, HANDLE, INVALID_HANDLE_VALUE, ERROR_PIPE_CONNECTED,
+        CloseHandle, GetLastError, ERROR_PIPE_CONNECTED, HANDLE, INVALID_HANDLE_VALUE,
     };
     use windows_sys::Win32::Storage::FileSystem::{
         FlushFileBuffers, ReadFile, WriteFile, PIPE_ACCESS_DUPLEX,
@@ -226,12 +226,9 @@ mod tests {
 
     #[test]
     fn a_missing_pipe_is_an_error_not_a_panic() {
-        let missing = format!(
-            r"\\.\pipe\kestrel-nmhost-missing-{}",
-            std::process::id()
-        );
-        let error = round_trip_at(&missing, &json!({"op": "browser.status"}))
-            .expect_err("no server");
+        let missing = format!(r"\\.\pipe\kestrel-nmhost-missing-{}", std::process::id());
+        let error =
+            round_trip_at(&missing, &json!({"op": "browser.status"})).expect_err("no server");
         assert!(error.contains("Kestrel running"), "{error}");
     }
 }

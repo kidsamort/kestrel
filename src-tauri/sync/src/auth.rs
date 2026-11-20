@@ -199,7 +199,9 @@ impl ReplayCache {
 
     #[cfg(test)]
     fn len(&self, device_id: &str) -> usize {
-        self.devices.get(device_id).map_or(0, |entry| entry.order.len())
+        self.devices
+            .get(device_id)
+            .map_or(0, |entry| entry.order.len())
     }
 }
 
@@ -228,7 +230,10 @@ mod tests {
     #[test]
     fn parses_a_well_formed_header() {
         let signature = "0".repeat(128);
-        let header = format!("Kestrel {DEVICE}.1700000000.{}.{signature}", "1".repeat(NONCE_HEX_LEN));
+        let header = format!(
+            "Kestrel {DEVICE}.1700000000.{}.{signature}",
+            "1".repeat(NONCE_HEX_LEN)
+        );
         let parsed = parse(&header).expect("parses");
         assert_eq!(parsed.device_id, DEVICE);
         assert_eq!(parsed.timestamp, 1_700_000_000);
@@ -248,9 +253,19 @@ mod tests {
     fn signature_round_trip() {
         let key = SigningKey::from_bytes(&[7u8; 32]);
         let digest = body_digest(b"{}");
-        let message = signing_string("POST", "/v1/accounts", &digest, 1_700_000_000, &"a".repeat(32));
+        let message = signing_string(
+            "POST",
+            "/v1/accounts",
+            &digest,
+            1_700_000_000,
+            &"a".repeat(32),
+        );
         let signature = key.sign(message.as_bytes());
-        assert!(verify(&key.verifying_key().to_bytes(), message.as_bytes(), &signature.to_bytes()));
+        assert!(verify(
+            &key.verifying_key().to_bytes(),
+            message.as_bytes(),
+            &signature.to_bytes()
+        ));
         assert!(!verify(
             &key.verifying_key().to_bytes(),
             b"kestrel-sync/v1\nPOST\n/v1/accounts\nx\n1\nb",

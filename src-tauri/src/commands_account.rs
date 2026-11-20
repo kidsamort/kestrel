@@ -154,10 +154,9 @@ pub fn account_revoke_device(
         Some(server) => {
             state
                 .with_unlocked(|store, master, _meta| {
-                    let account_id = store
-                        .account_status()?
-                        .account_id
-                        .ok_or_else(|| VaultError::Invalid("this vault has no account".to_string()))?;
+                    let account_id = store.account_status()?.account_id.ok_or_else(|| {
+                        VaultError::Invalid("this vault has no account".to_string())
+                    })?;
                     let keys = store.device_secret_keys(master)?;
                     let client = SyncClient::new(ClientConfig {
                         base_url: server.clone(),

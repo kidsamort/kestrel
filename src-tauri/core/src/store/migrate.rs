@@ -559,8 +559,10 @@ impl Store {
     /// sealed halves and this file cannot sign or unwrap for them.
     fn add_device_key_columns(&self) -> Result<(), StoreError> {
         if !self.has_column("devices", "signing_key_wrapped")? {
-            self.conn
-                .execute("ALTER TABLE devices ADD COLUMN signing_key_wrapped BLOB", [])?;
+            self.conn.execute(
+                "ALTER TABLE devices ADD COLUMN signing_key_wrapped BLOB",
+                [],
+            )?;
         }
         if !self.has_column("devices", "agreement_key_wrapped")? {
             self.conn.execute(

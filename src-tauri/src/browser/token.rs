@@ -81,7 +81,15 @@ pub fn write(path: &Path, token: &str) -> Result<(), TokenError> {
     }
     let bytes = token.as_bytes();
     let mut written = 0u32;
-    let ok = unsafe { WriteFile(handle, bytes.as_ptr(), bytes.len() as u32, &mut written, null_mut()) };
+    let ok = unsafe {
+        WriteFile(
+            handle,
+            bytes.as_ptr(),
+            bytes.len() as u32,
+            &mut written,
+            null_mut(),
+        )
+    };
     unsafe {
         FlushFileBuffers(handle);
         CloseHandle(handle);
@@ -202,8 +210,7 @@ fn wide_to_string(value: *const u16) -> String {
 #[cfg(test)]
 pub fn dacl_sddl(path: &Path) -> Result<String, TokenError> {
     use windows_sys::Win32::Security::Authorization::{
-        ConvertSecurityDescriptorToStringSecurityDescriptorW, GetNamedSecurityInfoW,
-        SE_FILE_OBJECT,
+        ConvertSecurityDescriptorToStringSecurityDescriptorW, GetNamedSecurityInfoW, SE_FILE_OBJECT,
     };
     use windows_sys::Win32::Security::DACL_SECURITY_INFORMATION;
 

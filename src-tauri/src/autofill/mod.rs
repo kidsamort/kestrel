@@ -197,10 +197,7 @@ impl AutofillState {
     /// The focus callback runs on the observer thread and also reads state; a
     /// guard held while waiting for that thread would stall it for the timeout.
     fn worker(&self) -> Option<std::sync::Arc<uia::Worker>> {
-        self.worker
-            .lock()
-            .expect("autofill worker mutex")
-            .clone()
+        self.worker.lock().expect("autofill worker mutex").clone()
     }
 }
 
@@ -281,7 +278,11 @@ pub fn reopen(app: &AppHandle, path: &std::path::Path) {
         }
     }
     // Recents name items of the previous vault; they mean nothing here.
-    state.recents.lock().expect("autofill recents mutex").clear();
+    state
+        .recents
+        .lock()
+        .expect("autofill recents mutex")
+        .clear();
 }
 
 fn register_shortcut(app: &AppHandle) {
@@ -388,10 +389,7 @@ pub fn anchored_origin(field: Rect, overlay: (i32, i32), work: Option<Rect>) -> 
 }
 
 fn work_area_for(app: &AppHandle, field: Rect) -> Option<Rect> {
-    let (x, y) = (
-        field.x + field.width / 2,
-        field.y + field.height / 2,
-    );
+    let (x, y) = (field.x + field.width / 2, field.y + field.height / 2);
     let monitor = app.monitor_from_point(x as f64, y as f64).ok().flatten()?;
     let area = monitor.work_area();
     Some(Rect {
@@ -553,7 +551,10 @@ fn present(app: &AppHandle, state: &AutofillState, target: Target) {
     let shown = target.clone();
     let _ = app.run_on_main_thread(move || {
         if let Err(failure) = show_window(&handle, &shown) {
-            record_error(&handle, format!("The autofill overlay did not open: {failure}"));
+            record_error(
+                &handle,
+                format!("The autofill overlay did not open: {failure}"),
+            );
         }
     });
 }
@@ -564,12 +565,15 @@ fn show_window(app: &AppHandle, target: &Target) -> tauri::Result<()> {
         None => build_window(app)?,
     };
 
-    let work = work_area_for(app, Rect {
-        x: target.dto.rect.x,
-        y: target.dto.rect.y,
-        width: target.dto.rect.width,
-        height: target.dto.rect.height,
-    });
+    let work = work_area_for(
+        app,
+        Rect {
+            x: target.dto.rect.x,
+            y: target.dto.rect.y,
+            width: target.dto.rect.width,
+            height: target.dto.rect.height,
+        },
+    );
     let (x, y) = anchored_origin(
         Rect {
             x: target.dto.rect.x,
@@ -620,20 +624,18 @@ fn build_window(app: &AppHandle) -> tauri::Result<WebviewWindow> {
     let handle = app.clone();
     let focused_once = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
     let seen = focused_once.clone();
-    window.on_window_event(move |event| {
-        match event {
-            tauri::WindowEvent::Focused(true) => {
-                seen.store(true, std::sync::atomic::Ordering::SeqCst);
-            }
-            tauri::WindowEvent::Focused(false)
-                if seen.swap(false, std::sync::atomic::Ordering::SeqCst) =>
-            {
-                if let Some(state) = handle.try_state::<AutofillState>() {
-                    hide_overlay(&handle, &state, false);
-                }
-            }
-            _ => {}
+    window.on_window_event(move |event| match event {
+        tauri::WindowEvent::Focused(true) => {
+            seen.store(true, std::sync::atomic::Ordering::SeqCst);
         }
+        tauri::WindowEvent::Focused(false)
+            if seen.swap(false, std::sync::atomic::Ordering::SeqCst) =>
+        {
+            if let Some(state) = handle.try_state::<AutofillState>() {
+                hide_overlay(&handle, &state, false);
+            }
+        }
+        _ => {}
     });
 
     Ok(window)
@@ -780,9 +782,9 @@ pub fn autofill_set_enabled(
 #[tauri::command]
 pub fn autofill_rules(state: State<'_, AutofillState>) -> Result<Vec<RuleDto>, String> {
     let rules = state.rules.lock().expect("autofill rules mutex");
-    let store = rules
-        .as_ref()
-        .ok_or_else(|| "Autofill rules are unavailable (the vault is not initialised).".to_string())?;
+    let store = rules.as_ref().ok_or_else(|| {
+        "Autofill rules are unavailable (the vault is not initialised).".to_string()
+    })?;
     let rows = store.autofill_rules().map_err(|error| error.to_string())?;
     Ok(rows
         .into_iter()
@@ -854,10 +856,7 @@ pub fn autofill_target(state: State<'_, AutofillState>) -> Option<TargetDto> {
 /// Rows for the overlay: recent fills for this executable plus search hits.
 /// Only summaries cross the bridge; field values stay in the core.
 #[tauri::command]
-pub async fn autofill_suggest(
-    app: AppHandle,
-    query: String,
-) -> Result<SuggestDto, String> {
+pub async fn autofill_suggest(app: AppHandle, query: String) -> Result<SuggestDto, String> {
     tauri::async_runtime::spawn_blocking(move || suggest_blocking(&app, &query))
         .await
         .map_err(|error| error.to_string())?
@@ -905,11 +904,7 @@ fn suggest_blocking(app: &AppHandle, query: &str) -> Result<SuggestDto, String> 
 /// `field` is `password` or `username`. The value is read here, inside the
 /// process, and passed straight to the observer; it is never serialized.
 #[tauri::command]
-pub async fn autofill_fill(
-    app: AppHandle,
-    item_id: String,
-    field: String,
-) -> Result<(), String> {
+pub async fn autofill_fill(app: AppHandle, item_id: String, field: String) -> Result<(), String> {
     tauri::async_runtime::spawn_blocking(move || fill_blocking(&app, &item_id, &field))
         .await
         .map_err(|error| error.to_string())?
@@ -917,7 +912,9 @@ pub async fn autofill_fill(
 
 fn fill_blocking(app: &AppHandle, item_id: &str, field: &str) -> Result<(), String> {
     if field != "password" && field != "username" {
-        return Err(format!("Autofill supports username and password, not {field}."));
+        return Err(format!(
+            "Autofill supports username and password, not {field}."
+        ));
     }
 
     let state = app.state::<AutofillState>();
@@ -1090,18 +1087,21 @@ mod tests {
     fn missing_rule_is_ask_through_the_core() {
         // The rule policy lives in the core; this checks the wire value the
         // picker actually reads (a missing row is `ask`, never `fill`).
-        let path = std::env::temp_dir().join(format!(
-            "kestrel-autofill-rule-{}.db",
-            uuid_like()
-        ));
+        let path = std::env::temp_dir().join(format!("kestrel-autofill-rule-{}.db", uuid_like()));
         let store = Store::open(&path).expect("store opens");
         assert_eq!(store.autofill_rule("notepad.exe").unwrap(), "ask");
         store.set_autofill_rule("notepad.exe", "fill").unwrap();
         assert_eq!(store.autofill_rule("notepad.exe").unwrap(), "fill");
-        assert!(should_show(&store.autofill_rule("notepad.exe").unwrap(), false));
+        assert!(should_show(
+            &store.autofill_rule("notepad.exe").unwrap(),
+            false
+        ));
         store.set_autofill_rule("notepad.exe", "off").unwrap();
         assert_eq!(store.autofill_rule("notepad.exe").unwrap(), "off");
-        assert!(!should_show(&store.autofill_rule("notepad.exe").unwrap(), true));
+        assert!(!should_show(
+            &store.autofill_rule("notepad.exe").unwrap(),
+            true
+        ));
         let _ = std::fs::remove_file(&path);
         let _ = std::fs::remove_file(path.with_extension("db-wal"));
         let _ = std::fs::remove_file(path.with_extension("db-shm"));
@@ -1123,10 +1123,7 @@ mod tests {
 
     #[test]
     fn image_names_are_reduced_to_a_lower_case_file_name() {
-        assert_eq!(
-            normalise_exe(r"C:\Program Files\Acme\Acme.EXE"),
-            "acme.exe"
-        );
+        assert_eq!(normalise_exe(r"C:\Program Files\Acme\Acme.EXE"), "acme.exe");
         assert_eq!(normalise_exe("/usr/local/bin/Foo"), "foo");
         assert_eq!(normalise_exe("  Notepad.Exe  "), "notepad.exe");
         assert_eq!(normalise_exe("\"C:\\App\\App.exe\""), "app.exe");

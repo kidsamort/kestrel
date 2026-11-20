@@ -49,16 +49,15 @@ async fn main() -> ExitCode {
             // `docker stop` sends SIGTERM; `ctrl_c` alone would let the process
             // die mid-request. SQLite would survive it, but a clean exit is
             // cheaper to reason about.
-            let mut terminate = match tokio::signal::unix::signal(
-                tokio::signal::unix::SignalKind::terminate(),
-            ) {
-                Ok(signal) => signal,
-                Err(error) => {
-                    eprintln!("kestrel-sync: could not listen for SIGTERM: {error}");
-                    let _ = tokio::signal::ctrl_c().await;
-                    return;
-                }
-            };
+            let mut terminate =
+                match tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()) {
+                    Ok(signal) => signal,
+                    Err(error) => {
+                        eprintln!("kestrel-sync: could not listen for SIGTERM: {error}");
+                        let _ = tokio::signal::ctrl_c().await;
+                        return;
+                    }
+                };
             tokio::select! {
                 _ = tokio::signal::ctrl_c() => {}
                 _ = terminate.recv() => {}

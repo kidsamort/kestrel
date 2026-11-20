@@ -295,11 +295,7 @@ impl Store {
     /// There is at most one conflict per item: a second concurrent arrival
     /// replaces the first, because the user is asked about the item, not about
     /// a queue of intermediate remote revisions.
-    pub fn sync_conflict_put(
-        &self,
-        vault: &str,
-        row: &SyncConflictRow,
-    ) -> Result<(), StoreError> {
+    pub fn sync_conflict_put(&self, vault: &str, row: &SyncConflictRow) -> Result<(), StoreError> {
         let local_clock = encode_clock(&row.local_clock)?;
         let remote_clock = encode_clock(&row.remote_clock)?;
         self.conn.execute(

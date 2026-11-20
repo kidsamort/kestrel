@@ -65,8 +65,14 @@ mod tests {
     #[test]
     fn round_trips_and_normalises_case() {
         assert_eq!(encode(&[0x00, 0x0f, 0xa5, 0xff]), "000fa5ff");
-        assert_eq!(decode("000fa5ff").expect("lowercase"), vec![0, 15, 165, 255]);
-        assert_eq!(decode("000FA5FF").expect("uppercase"), vec![0, 15, 165, 255]);
+        assert_eq!(
+            decode("000fa5ff").expect("lowercase"),
+            vec![0, 15, 165, 255]
+        );
+        assert_eq!(
+            decode("000FA5FF").expect("uppercase"),
+            vec![0, 15, 165, 255]
+        );
         assert!(decode("").expect("empty is empty").is_empty());
     }
 

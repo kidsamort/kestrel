@@ -383,7 +383,10 @@ fn a_vault_that_never_saved_an_interval_keeps_the_default() {
     let reopened = VaultState::open(path).unwrap();
     let dto = reopened.state().unwrap();
     assert_eq!(dto.autolock_seconds, 300, "auto-lock stays at five minutes");
-    assert_eq!(dto.clipboard_clear_seconds, 30, "the clipboard wipe stays at 30s");
+    assert_eq!(
+        dto.clipboard_clear_seconds, 30,
+        "the clipboard wipe stays at 30s"
+    );
 }
 
 #[test]
@@ -393,7 +396,10 @@ fn a_new_item_is_a_draft_until_it_is_saved() {
     state.create(PW).unwrap();
 
     let draft = state.create_default("login").unwrap();
-    assert!(!draft.id.is_empty(), "the draft carries the id it will save under");
+    assert!(
+        !draft.id.is_empty(),
+        "the draft carries the id it will save under"
+    );
     assert_eq!(
         draft.fields.len(),
         Category::Login.default_fields().len(),

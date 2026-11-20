@@ -27,8 +27,7 @@ use tauri::{AppHandle, State};
 
 /// The one server instance for this process. `None` until
 /// `passkeys_register_plugin` starts it; unregistration takes it back out.
-static SERVICE: LazyLock<Mutex<Option<pipe::Server>>> =
-    LazyLock::new(|| Mutex::new(None));
+static SERVICE: LazyLock<Mutex<Option<pipe::Server>>> = LazyLock::new(|| Mutex::new(None));
 
 fn service() -> &'static Mutex<Option<pipe::Server>> {
     &SERVICE
@@ -62,10 +61,7 @@ pub struct PasskeyStatus {
     pub error: Option<String>,
 }
 
-fn status_with(
-    windows: Option<reg::WindowsRegistration>,
-    error: Option<String>,
-) -> PasskeyStatus {
+fn status_with(windows: Option<reg::WindowsRegistration>, error: Option<String>) -> PasskeyStatus {
     let dll = reg::plugin_dll_path();
     let dll_path = dll
         .as_ref()
@@ -82,10 +78,7 @@ fn status_with(
                 dll_path,
                 dll_present,
                 pipe: kestrel_passkey::PIPE_PATH.to_string(),
-                pipe_running: service()
-                    .lock()
-                    .map(|slot| slot.is_some())
-                    .unwrap_or(false),
+                pipe_running: service().lock().map(|slot| slot.is_some()).unwrap_or(false),
                 windows_state: None,
                 windows_hresult: None,
                 windows_error: None,
@@ -101,10 +94,7 @@ fn status_with(
         dll_path,
         dll_present,
         pipe: kestrel_passkey::PIPE_PATH.to_string(),
-        pipe_running: service()
-            .lock()
-            .map(|slot| slot.is_some())
-            .unwrap_or(false),
+        pipe_running: service().lock().map(|slot| slot.is_some()).unwrap_or(false),
         windows_state: windows.state,
         windows_hresult: windows.hresult,
         windows_error: windows.error,
@@ -181,10 +171,7 @@ pub fn passkeys_register_plugin(app: AppHandle) -> Result<PasskeyStatus, String>
 #[tauri::command]
 pub fn passkeys_unregister_plugin() -> Result<PasskeyStatus, String> {
     let windows = reg::remove_from_windows();
-    let server = service()
-        .lock()
-        .expect("passkey service mutex")
-        .take();
+    let server = service().lock().expect("passkey service mutex").take();
     if let Some(server) = server {
         server.stop();
     }
@@ -199,7 +186,9 @@ pub fn passkeys_for_item(
     state: State<'_, VaultState>,
     item_id: String,
 ) -> Result<Vec<PasskeyInfo>, String> {
-    state.passkeys_for_item(&item_id).map_err(|error| error.to_string())
+    state
+        .passkeys_for_item(&item_id)
+        .map_err(|error| error.to_string())
 }
 
 /// Remove one credential from one item. `credential_id` is the hex string the
@@ -252,7 +241,10 @@ mod tests {
 
     #[test]
     fn credential_hex_is_strict() {
-        assert_eq!(parse_credential_id("000fa5ff").unwrap(), vec![0, 15, 165, 255]);
+        assert_eq!(
+            parse_credential_id("000fa5ff").unwrap(),
+            vec![0, 15, 165, 255]
+        );
         assert_eq!(parse_credential_id("ABCD").unwrap(), vec![0xab, 0xcd]);
         assert!(parse_credential_id("abc").is_err());
         assert!(parse_credential_id("zz").is_err());

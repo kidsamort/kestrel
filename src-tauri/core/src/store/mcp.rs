@@ -122,10 +122,7 @@ impl Store {
         grants: &[(String, String, String)],
     ) -> Result<(), StoreError> {
         let tx = self.conn().unchecked_transaction()?;
-        tx.execute(
-            "DELETE FROM grants WHERE item_uuid = ?1",
-            params![item_id],
-        )?;
+        tx.execute("DELETE FROM grants WHERE item_uuid = ?1", params![item_id])?;
         let now = chrono::Utc::now().timestamp();
         {
             let mut insert = tx.prepare(
@@ -420,20 +417,53 @@ mod tests {
             .replace_mcp_grants("editor", &pairs(&[("item-1", "field-1")]))
             .expect("grants write");
 
-        assert!(allows(&store, GRANT_KIND_MCP, "editor", "item-1", "field-1"));
+        assert!(allows(
+            &store,
+            GRANT_KIND_MCP,
+            "editor",
+            "item-1",
+            "field-1"
+        ));
         // Every part of the triple is significant.
-        assert!(!allows(&store, GRANT_KIND_MCP, "editor", "item-1", "field-2"));
-        assert!(!allows(&store, GRANT_KIND_MCP, "editor", "item-2", "field-1"));
-        assert!(!allows(&store, GRANT_KIND_MCP, "other", "item-1", "field-1"));
+        assert!(!allows(
+            &store,
+            GRANT_KIND_MCP,
+            "editor",
+            "item-1",
+            "field-2"
+        ));
+        assert!(!allows(
+            &store,
+            GRANT_KIND_MCP,
+            "editor",
+            "item-2",
+            "field-1"
+        ));
+        assert!(!allows(
+            &store,
+            GRANT_KIND_MCP,
+            "other",
+            "item-1",
+            "field-1"
+        ));
         // The same id under another principal kind is a different principal.
-        assert!(!allows(&store, GRANT_KIND_CLI, "editor", "item-1", "field-1"));
+        assert!(!allows(
+            &store,
+            GRANT_KIND_CLI,
+            "editor",
+            "item-1",
+            "field-1"
+        ));
     }
 
     #[test]
     fn re_pairing_replaces_the_whole_allowlist() {
         let (store, _dir) = store("replace");
         store
-            .replace_mcp_grants("editor", &pairs(&[("item-1", "field-1"), ("item-1", "field-2")]))
+            .replace_mcp_grants(
+                "editor",
+                &pairs(&[("item-1", "field-1"), ("item-1", "field-2")]),
+            )
             .expect("first pair");
         store
             .replace_mcp_grants("editor", &pairs(&[("item-2", "field-9")]))
@@ -444,8 +474,20 @@ mod tests {
         assert_eq!(grants[0].item_id, "item-2");
         assert_eq!(grants[0].expires_at, None);
         assert!(!grants[0].one_shot);
-        assert!(!allows(&store, GRANT_KIND_MCP, "editor", "item-1", "field-1"));
-        assert!(allows(&store, GRANT_KIND_MCP, "editor", "item-2", "field-9"));
+        assert!(!allows(
+            &store,
+            GRANT_KIND_MCP,
+            "editor",
+            "item-1",
+            "field-1"
+        ));
+        assert!(allows(
+            &store,
+            GRANT_KIND_MCP,
+            "editor",
+            "item-2",
+            "field-9"
+        ));
 
         // An empty list means no access, not "keep what was there".
         store.replace_mcp_grants("editor", &[]).expect("clear");
@@ -468,13 +510,27 @@ mod tests {
             )
             .expect("cli");
         assert_eq!(
-            store.granted_item_ids(GRANT_KIND_MCP, "editor", now()).unwrap(),
+            store
+                .granted_item_ids(GRANT_KIND_MCP, "editor", now())
+                .unwrap(),
             vec!["item-1".to_string()]
         );
         assert_eq!(store.clear_mcp_grants("editor").expect("clear"), 1);
-        assert!(!allows(&store, GRANT_KIND_MCP, "editor", "item-1", "field-1"));
+        assert!(!allows(
+            &store,
+            GRANT_KIND_MCP,
+            "editor",
+            "item-1",
+            "field-1"
+        ));
         // The CLI principal with the same id is untouched by the MCP revoke.
-        assert!(allows(&store, GRANT_KIND_CLI, "editor", "item-1", "field-1"));
+        assert!(allows(
+            &store,
+            GRANT_KIND_CLI,
+            "editor",
+            "item-1",
+            "field-1"
+        ));
         assert_eq!(store.clear_mcp_grants("editor").expect("idempotent"), 0);
     }
 
@@ -539,10 +595,7 @@ mod tests {
             !allows(&store, GRANT_KIND_CLI, "once", "item-1", "field-1"),
             "a spent grant is gone"
         );
-        assert!(store
-            .grants_for(GRANT_KIND_CLI, "once")
-            .unwrap()
-            .is_empty());
+        assert!(store.grants_for(GRANT_KIND_CLI, "once").unwrap().is_empty());
 
         // A permanent grant is left alone by the same call.
         store
@@ -557,7 +610,13 @@ mod tests {
         store
             .consume_one_shot_grant(GRANT_KIND_CLI, "always", "item-1", "field-1")
             .expect("no-op");
-        assert!(allows(&store, GRANT_KIND_CLI, "always", "item-1", "field-1"));
+        assert!(allows(
+            &store,
+            GRANT_KIND_CLI,
+            "always",
+            "item-1",
+            "field-1"
+        ));
     }
 
     #[test]
@@ -590,7 +649,13 @@ mod tests {
         assert_eq!(rows.len(), 1, "the MCP row was replaced too: {rows:?}");
         assert_eq!(rows[0].principal_kind, GRANT_KIND_CLI);
         assert_eq!(rows[0].field, "field-1");
-        assert!(!allows(&store, GRANT_KIND_MCP, "editor", "item-1", "field-1"));
+        assert!(!allows(
+            &store,
+            GRANT_KIND_MCP,
+            "editor",
+            "item-1",
+            "field-1"
+        ));
 
         // Clearing the item's access removes the rows rather than keeping the
         // ones the editor no longer shows.

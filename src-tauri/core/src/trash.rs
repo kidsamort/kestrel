@@ -71,7 +71,9 @@ impl VaultState {
     pub fn restore_item(&self, id: &str) -> Result<(), VaultError> {
         self.touch();
         self.with_session(|store, _, meta| {
-            store.set_trashed(meta, id, false).map_err(VaultError::Store)
+            store
+                .set_trashed(meta, id, false)
+                .map_err(VaultError::Store)
         })
     }
 

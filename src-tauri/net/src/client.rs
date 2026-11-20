@@ -292,9 +292,7 @@ fn read_response(
     response: ureq::Response,
 ) -> Result<(u16, Option<String>, String), TransportError> {
     let status = response.status();
-    let protocol = response
-        .header(signing::PROTOCOL_HEADER)
-        .map(str::to_owned);
+    let protocol = response.header(signing::PROTOCOL_HEADER).map(str::to_owned);
     let text = response.into_string()?;
     Ok((status, protocol, text))
 }

@@ -16,9 +16,8 @@ pub fn path() -> Result<PathBuf, String> {
     if let Some(explicit) = std::env::var_os("KESTREL_BRIDGE_TOKEN_FILE") {
         return Ok(PathBuf::from(explicit));
     }
-    let appdata = std::env::var_os("APPDATA").ok_or_else(|| {
-        "APPDATA is not set; cannot locate the Kestrel bridge token".to_string()
-    })?;
+    let appdata = std::env::var_os("APPDATA")
+        .ok_or_else(|| "APPDATA is not set; cannot locate the Kestrel bridge token".to_string())?;
     Ok(PathBuf::from(appdata)
         .join("app.kestrel.vault")
         .join("bridge.token"))

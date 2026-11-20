@@ -45,13 +45,16 @@ pub fn data_dir() -> Result<PathBuf, String> {
     if let Some(dir) = std::env::var_os("KESTREL_DATA_DIR") {
         return Ok(PathBuf::from(dir));
     }
-    let appdata = std::env::var_os("APPDATA")
-        .ok_or_else(|| "APPDATA is not set; cannot locate the Kestrel data directory".to_string())?;
+    let appdata = std::env::var_os("APPDATA").ok_or_else(|| {
+        "APPDATA is not set; cannot locate the Kestrel data directory".to_string()
+    })?;
     Ok(PathBuf::from(appdata).join("app.kestrel.vault"))
 }
 
 pub fn manifest_path() -> Result<PathBuf, String> {
-    Ok(data_dir()?.join("nm_hosts").join(format!("{HOST_NAME}.json")))
+    Ok(data_dir()?
+        .join("nm_hosts")
+        .join(format!("{HOST_NAME}.json")))
 }
 
 /// Firefox reads a different manifest: `allowed_extensions`, not origins.
@@ -168,7 +171,10 @@ pub fn unregister() -> Result<(), String> {
     if let Err(error) = delete_value(&format!(r"{FIREFOX_ROOT}\{HOST_NAME}")) {
         first_error.get_or_insert(error);
     }
-    for path in [manifest_path(), firefox_manifest_path()].into_iter().flatten() {
+    for path in [manifest_path(), firefox_manifest_path()]
+        .into_iter()
+        .flatten()
+    {
         match std::fs::remove_file(&path) {
             Ok(()) => {}
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
@@ -197,8 +203,14 @@ pub fn registrations() -> (bool, bool, bool) {
             .flatten()
             .is_some_and(|value| value.to_lowercase() == expected)
     };
-    let chrome = points_at(&format!(r"{}\{HOST_NAME}", REGISTRY_ROOTS[0]), chromium.as_ref());
-    let edge = points_at(&format!(r"{}\{HOST_NAME}", REGISTRY_ROOTS[1]), chromium.as_ref());
+    let chrome = points_at(
+        &format!(r"{}\{HOST_NAME}", REGISTRY_ROOTS[0]),
+        chromium.as_ref(),
+    );
+    let edge = points_at(
+        &format!(r"{}\{HOST_NAME}", REGISTRY_ROOTS[1]),
+        chromium.as_ref(),
+    );
     let firefox = points_at(&format!(r"{FIREFOX_ROOT}\{HOST_NAME}"), gecko.as_ref());
     (chrome, edge, firefox)
 }
@@ -266,9 +278,7 @@ fn set_default_string(key: &str, value: &str) -> Result<(), String> {
         )
     };
     if status != ERROR_SUCCESS {
-        return Err(format!(
-            "cannot open HKCU\\{key} (Windows code {status})"
-        ));
+        return Err(format!("cannot open HKCU\\{key} (Windows code {status})"));
     }
     let data: Vec<u16> = value.encode_utf16().chain(std::iter::once(0)).collect();
     let status = unsafe {
@@ -285,9 +295,7 @@ fn set_default_string(key: &str, value: &str) -> Result<(), String> {
         RegCloseKey(handle);
     }
     if status != ERROR_SUCCESS {
-        return Err(format!(
-            "cannot write HKCU\\{key} (Windows code {status})"
-        ));
+        return Err(format!("cannot write HKCU\\{key} (Windows code {status})"));
     }
     Ok(())
 }
@@ -310,9 +318,7 @@ fn default_string(key: &str) -> Result<Option<String>, String> {
         return Ok(None);
     }
     if status != ERROR_SUCCESS && status != ERROR_MORE_DATA {
-        return Err(format!(
-            "cannot read HKCU\\{key} (Windows code {status})"
-        ));
+        return Err(format!("cannot read HKCU\\{key} (Windows code {status})"));
     }
     let mut buffer = vec![0u16; (size as usize).div_ceil(2).max(1)];
     let status = unsafe {
@@ -327,9 +333,7 @@ fn default_string(key: &str) -> Result<Option<String>, String> {
         )
     };
     if status != ERROR_SUCCESS {
-        return Err(format!(
-            "cannot read HKCU\\{key} (Windows code {status})"
-        ));
+        return Err(format!("cannot read HKCU\\{key} (Windows code {status})"));
     }
     let len = buffer.iter().position(|unit| *unit == 0).unwrap_or(0);
     Ok(Some(String::from_utf16_lossy(&buffer[..len])))
@@ -337,19 +341,12 @@ fn default_string(key: &str) -> Result<Option<String>, String> {
 
 fn delete_value(key: &str) -> Result<(), String> {
     let wide_key = wide(key);
-    let status = unsafe {
-        RegDeleteKeyValueW(
-            HKEY_CURRENT_USER,
-            wide_key.as_ptr(),
-            std::ptr::null(),
-        )
-    };
+    let status =
+        unsafe { RegDeleteKeyValueW(HKEY_CURRENT_USER, wide_key.as_ptr(), std::ptr::null()) };
     if status == ERROR_SUCCESS || status == ERROR_FILE_NOT_FOUND {
         Ok(())
     } else {
-        Err(format!(
-            "cannot remove HKCU\\{key} (Windows code {status})"
-        ))
+        Err(format!("cannot remove HKCU\\{key} (Windows code {status})"))
     }
 }
 

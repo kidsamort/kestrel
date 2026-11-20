@@ -210,7 +210,10 @@ fn write_row(
 fn delete_row(store: &Store, vault_uuid: &str) -> Result<(), HelloError> {
     store
         .conn()
-        .execute("DELETE FROM hello WHERE vault_uuid = ?1", params![vault_uuid])
+        .execute(
+            "DELETE FROM hello WHERE vault_uuid = ?1",
+            params![vault_uuid],
+        )
         .map_err(StoreError::from)?;
     Ok(())
 }
@@ -338,7 +341,8 @@ pub fn invalidate(store: &Store, protector: &dyn Protector) -> Result<(), HelloE
         let rows = stmt
             .query_map([], |row| row.get::<_, String>(0))
             .map_err(StoreError::from)?;
-        rows.collect::<Result<Vec<_>, _>>().map_err(StoreError::from)?
+        rows.collect::<Result<Vec<_>, _>>()
+            .map_err(StoreError::from)?
     };
     for uuid in &uuids {
         let _ = protector.forget(&key_name(uuid));
@@ -355,13 +359,15 @@ pub fn invalidate(store: &Store, protector: &dyn Protector) -> Result<(), HelloE
 /// password. Legacy rows are re-sealed exactly as they are after a password
 /// unlock, so both entry paths leave the database in the same shape.
 fn verify(store: &Store, master: &SymKey, meta: &VaultMeta) -> Result<(), HelloError> {
-    let vaults = store.list_vaults(master, meta).map_err(|error| match error {
-        // A key that cannot authenticate a vault name is the wrong key. Saying
-        // "authentication failed" would reach the UI as a master-password
-        // error, which is not what the user did.
-        StoreError::Crypto(_) => HelloError::WrongKey,
-        other => HelloError::Store(other),
-    })?;
+    let vaults = store
+        .list_vaults(master, meta)
+        .map_err(|error| match error {
+            // A key that cannot authenticate a vault name is the wrong key. Saying
+            // "authentication failed" would reach the UI as a master-password
+            // error, which is not what the user did.
+            StoreError::Crypto(_) => HelloError::WrongKey,
+            other => HelloError::Store(other),
+        })?;
     if vaults.is_empty() {
         return Err(HelloError::WrongKey);
     }
@@ -403,11 +409,11 @@ mod windows {
     use super::{HelloError, Mechanism, Protector};
     use crate::crypto::SymKey;
     use windows_sys::Win32::Security::Cryptography::{
-        NCryptCreatePersistedKey, NCryptDeleteKey, NCryptDecrypt, NCryptEncrypt,
-        NCryptFinalizeKey, NCryptFreeObject, NCryptIsAlgSupported, NCryptOpenKey,
-        NCryptOpenStorageProvider, NCryptSetProperty, NCRYPT_FLAGS, NCRYPT_HANDLE,
-        NCRYPT_KEY_HANDLE, NCRYPT_PAD_PKCS1_FLAG, NCRYPT_PROV_HANDLE, NCRYPT_RSA_ALGORITHM,
-        NCRYPT_UI_POLICY, NCRYPT_UI_POLICY_PROPERTY, NCRYPT_UI_PROTECT_KEY_FLAG,
+        NCryptCreatePersistedKey, NCryptDecrypt, NCryptDeleteKey, NCryptEncrypt, NCryptFinalizeKey,
+        NCryptFreeObject, NCryptIsAlgSupported, NCryptOpenKey, NCryptOpenStorageProvider,
+        NCryptSetProperty, NCRYPT_FLAGS, NCRYPT_HANDLE, NCRYPT_KEY_HANDLE, NCRYPT_PAD_PKCS1_FLAG,
+        NCRYPT_PROV_HANDLE, NCRYPT_RSA_ALGORITHM, NCRYPT_UI_POLICY, NCRYPT_UI_POLICY_PROPERTY,
+        NCRYPT_UI_PROTECT_KEY_FLAG,
     };
 
     /// The TPM-backed key store. Passport is *not* used: it refuses to create
@@ -438,9 +444,7 @@ mod windows {
             ERROR_CANCELLED | NTE_USER_CANCELLED | NTE_AUTHENTICATION_IGNORED => {
                 Err(HelloError::Cancelled)
             }
-            NTE_NOT_FOUND | NTE_KEYSET_NOT_DEF | NTE_INVALID_HANDLE => {
-                Err(HelloError::MissingKey)
-            }
+            NTE_NOT_FOUND | NTE_KEYSET_NOT_DEF | NTE_INVALID_HANDLE => Err(HelloError::MissingKey),
             NTE_DEVICE_NOT_READY => Err(HelloError::Unavailable(
                 "the TPM is not ready (disabled, cleared or still starting)".to_string(),
             )),
@@ -456,9 +460,8 @@ mod windows {
     impl Provider {
         fn open() -> Result<Self, HelloError> {
             let mut handle: NCRYPT_PROV_HANDLE = 0;
-            let status = unsafe {
-                NCryptOpenStorageProvider(&mut handle, wide(PROVIDER).as_ptr(), 0)
-            };
+            let status =
+                unsafe { NCryptOpenStorageProvider(&mut handle, wide(PROVIDER).as_ptr(), 0) };
             match check(status, "opening the TPM key store") {
                 Ok(()) => Ok(Provider(handle)),
                 // Neither of these can describe a working provider, and both
@@ -480,9 +483,7 @@ mod windows {
 
         fn open_key(&self, name: &str) -> Result<Key, HelloError> {
             let mut handle: NCRYPT_KEY_HANDLE = 0;
-            let status = unsafe {
-                NCryptOpenKey(self.0, &mut handle, wide(name).as_ptr(), 0, 0)
-            };
+            let status = unsafe { NCryptOpenKey(self.0, &mut handle, wide(name).as_ptr(), 0, 0) };
             check(status, "opening the Hello key")?;
             Ok(Key(handle))
         }
@@ -543,7 +544,10 @@ mod windows {
 
         /// Commits the key and raises the enrolment prompt.
         fn finalize(&self) -> Result<(), HelloError> {
-            check(unsafe { NCryptFinalizeKey(self.0, 0) }, "finalizing the Hello key")
+            check(
+                unsafe { NCryptFinalizeKey(self.0, 0) },
+                "finalizing the Hello key",
+            )
         }
 
         fn encrypt(&self, plaintext: &[u8]) -> Result<Vec<u8>, HelloError> {
@@ -704,5 +708,4 @@ mod windows {
             }
         }
     }
-
 }

@@ -264,14 +264,7 @@ fn authed(
         unix_now(),
         &nonce(),
     );
-    request(
-        server,
-        method,
-        target,
-        body,
-        Some(&header),
-        Some(PROTOCOL),
-    )
+    request(server, method, target, body, Some(&header), Some(PROTOCOL))
 }
 
 fn create_account(server: &TestServer, account_id: &str, device: &Device) -> Reply {
@@ -393,7 +386,13 @@ fn enrolment_flow_reaches_a_working_second_device() {
         "new_device_id": phone.id,
     })
     .to_string();
-    let refused = authed(&server, &desktop, "POST", "/v1/enroll/offer", Some(&too_long));
+    let refused = authed(
+        &server,
+        &desktop,
+        "POST",
+        "/v1/enroll/offer",
+        Some(&too_long),
+    );
     assert_eq!(refused.status, 400, "body: {}", refused.body);
     assert_eq!(refused.error_code(), "invalid_field");
 
@@ -549,7 +548,15 @@ fn revoked_device_is_refused_and_its_row_is_kept() {
     })
     .to_string();
     assert_eq!(
-        request(&server, "POST", "/v1/enroll/claim", Some(&claim), None, Some(PROTOCOL)).status,
+        request(
+            &server,
+            "POST",
+            "/v1/enroll/claim",
+            Some(&claim),
+            None,
+            Some(PROTOCOL)
+        )
+        .status,
         200
     );
     let ack = json!({ "new_device_id": phone.id }).to_string();
@@ -619,7 +626,11 @@ fn revoked_device_is_refused_and_its_row_is_kept() {
         .find(|device| device["device_id"] == desktop.id)
         .expect("the live device is listed");
     assert!(desktop_row.get("revoked_at").is_none() || desktop_row["revoked_at"].is_null());
-    assert_eq!(snapshot.json()["items"], 1, "the phone's earlier write is kept");
+    assert_eq!(
+        snapshot.json()["items"],
+        1,
+        "the phone's earlier write is kept"
+    );
 
     // Retrying is idempotent and does not move the timestamp.
     let repeated = revoke(&server, &desktop, &phone.id);
@@ -634,7 +645,10 @@ fn revoked_device_is_refused_and_its_row_is_kept() {
     // A device id outside this account is not found, and the response does not
     // say whether it exists somewhere else.
     let stranger = Device::new(3, "stranger");
-    assert_eq!(create_account(&server, "ffeeddccbbaa99887766554433221100", &stranger).status, 201);
+    assert_eq!(
+        create_account(&server, "ffeeddccbbaa99887766554433221100", &stranger).status,
+        201
+    );
     let foreign = revoke(&server, &stranger, &phone.id);
     assert_eq!(foreign.status, 404);
     assert_eq!(foreign.error_code(), "not_found");
@@ -858,14 +872,30 @@ fn authentication_rejections() {
     assert_eq!(malformed.error_code(), "unauthorized");
 
     let unknown = Device::new(9, "ghost");
-    let header = header_for(&unknown.id, &device.signing, "GET", target, "", unix_now(), &nonce());
+    let header = header_for(
+        &unknown.id,
+        &device.signing,
+        "GET",
+        target,
+        "",
+        unix_now(),
+        &nonce(),
+    );
     let unknown_reply = request(&server, "GET", target, None, Some(&header), Some(PROTOCOL));
     assert_eq!(unknown_reply.status, 401);
     assert_eq!(unknown_reply.error_code(), "unknown_device");
 
     // The right device id with the wrong key: the signature cannot verify.
     let impostor = SigningKey::from_bytes(&[42u8; 32]);
-    let header = header_for(&device.id, &impostor, "GET", target, "", unix_now(), &nonce());
+    let header = header_for(
+        &device.id,
+        &impostor,
+        "GET",
+        target,
+        "",
+        unix_now(),
+        &nonce(),
+    );
     let bad = request(&server, "GET", target, None, Some(&header), Some(PROTOCOL));
     assert_eq!(bad.status, 401);
     assert_eq!(bad.error_code(), "bad_signature");
@@ -933,7 +963,14 @@ fn routing_body_limit_and_protocol_version() {
     let server = TestServer::start();
 
     let huge = "x".repeat(Config::default().max_body + 1);
-    let too_large = request(&server, "POST", "/v1/accounts", Some(&huge), None, Some(PROTOCOL));
+    let too_large = request(
+        &server,
+        "POST",
+        "/v1/accounts",
+        Some(&huge),
+        None,
+        Some(PROTOCOL),
+    );
     assert_eq!(too_large.status, 413, "body: {}", too_large.body);
     assert_eq!(too_large.error_code(), "body_too_large");
 
@@ -946,12 +983,23 @@ fn routing_body_limit_and_protocol_version() {
     assert_eq!(wrong_method.error_code(), "method_not_allowed");
     assert_eq!(wrong_method.allow.as_deref(), Some("POST"));
 
-    let wrong_method = request(&server, "DELETE", "/v1/sync/push", None, None, Some(PROTOCOL));
+    let wrong_method = request(
+        &server,
+        "DELETE",
+        "/v1/sync/push",
+        None,
+        None,
+        Some(PROTOCOL),
+    );
     assert_eq!(wrong_method.status, 405);
     assert_eq!(wrong_method.allow.as_deref(), Some("POST"));
 
     let future_protocol = request(&server, "POST", "/v1/accounts", Some("{}"), None, Some("2"));
-    assert_eq!(future_protocol.status, 426, "body: {}", future_protocol.body);
+    assert_eq!(
+        future_protocol.status, 426,
+        "body: {}",
+        future_protocol.body
+    );
     assert_eq!(future_protocol.error_code(), "unsupported_protocol");
 
     let malformed = request(
@@ -1077,7 +1125,9 @@ fn a_v1_database_gains_revocation_without_losing_its_devices() {
     });
 
     let conn = rusqlite::Connection::open(&server.db_path).expect("open migrated database");
-    let mut info = conn.prepare("PRAGMA table_info(devices)").expect("devices schema");
+    let mut info = conn
+        .prepare("PRAGMA table_info(devices)")
+        .expect("devices schema");
     let columns: Vec<String> = info
         .query_map([], |row| row.get::<_, String>(1))
         .expect("column rows")
@@ -1095,7 +1145,10 @@ fn a_v1_database_gains_revocation_without_losing_its_devices() {
         )
         .expect("the v1 device survived");
     assert_eq!(name, "old desktop");
-    assert_eq!(revoked_at, None, "an existing device is not retroactively revoked");
+    assert_eq!(
+        revoked_at, None,
+        "an existing device is not retroactively revoked"
+    );
     let version: String = conn
         .query_row(
             "SELECT value FROM meta WHERE key = 'schema_version'",
@@ -1119,7 +1172,9 @@ fn schema_has_no_content_columns() {
     assert_eq!(pushed.status, 200, "body: {}", pushed.body);
 
     let connection = rusqlite::Connection::open(&server.db_path).expect("open the database");
-    let mut items = connection.prepare("PRAGMA table_info(items)").expect("items schema");
+    let mut items = connection
+        .prepare("PRAGMA table_info(items)")
+        .expect("items schema");
     let columns: Vec<String> = items
         .query_map([], |row| row.get::<_, String>(1))
         .expect("column rows")
@@ -1158,7 +1213,9 @@ fn schema_has_no_content_columns() {
 
     // No table may grow a column that could hold a title, a URL, a username, a
     // category, a tag or a field name.
-    let forbidden = ["title", "url", "username", "category", "tag", "field", "note"];
+    let forbidden = [
+        "title", "url", "username", "category", "tag", "field", "note",
+    ];
     let mut tables = connection
         .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")
         .expect("table list");

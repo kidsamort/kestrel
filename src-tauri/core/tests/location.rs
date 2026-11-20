@@ -88,7 +88,9 @@ fn the_hint_travels_with_the_file_and_reads_before_unlock() {
         Some("first pet".to_string()),
         "the hint is readable without the master password"
     );
-    reopened.unlock(PW).expect("the hint did not disturb unlock");
+    reopened
+        .unlock(PW)
+        .expect("the hint did not disturb unlock");
 }
 
 #[test]
@@ -108,7 +110,9 @@ fn open_at_swaps_the_store_without_touching_the_first_vault() {
     let (_second_dir, second) = scratch("second");
 
     let state = VaultState::unselected().expect("empty state");
-    state.create_at(first.clone(), PW, None).expect("first vault");
+    state
+        .create_at(first.clone(), PW, None)
+        .expect("first vault");
     let saved = state
         .save(state.create_default("login").expect("default item"))
         .expect("save");
@@ -118,7 +122,9 @@ fn open_at_swaps_the_store_without_touching_the_first_vault() {
     // independent.
     {
         let other = VaultState::unselected().expect("empty state");
-        other.create_at(second.clone(), PW, None).expect("second vault");
+        other
+            .create_at(second.clone(), PW, None)
+            .expect("second vault");
     }
 
     let swapped = state.open_at(second.clone()).expect("switched files");
@@ -139,7 +145,9 @@ fn open_at_swaps_the_store_without_touching_the_first_vault() {
     );
     // The first vault still holds its item when selected again. (Comparing the
     // raw bytes would be meaningless: closing a WAL database checkpoints it.)
-    state.open_at(first.clone()).expect("back to the first vault");
+    state
+        .open_at(first.clone())
+        .expect("back to the first vault");
     state.unlock(PW).expect("unlock the first vault");
     assert_eq!(state.get(&saved.id).expect("still there").id, saved.id);
 }
@@ -151,7 +159,10 @@ fn open_at_refuses_a_missing_file_and_keeps_the_current_vault() {
     let state = VaultState::unselected().expect("empty state");
     state.create_at(path.clone(), PW, None).expect("created");
 
-    assert!(state.open_at(missing).is_err(), "a missing file cannot open");
+    assert!(
+        state.open_at(missing).is_err(),
+        "a missing file cannot open"
+    );
     assert_eq!(
         state.path(),
         Some(path),

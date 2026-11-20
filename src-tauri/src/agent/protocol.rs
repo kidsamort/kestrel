@@ -59,12 +59,8 @@ pub trait AgentBackend: Send + Sync {
     /// means "no such key" (the client gets `SSH_AGENT_FAILURE`); `flags` are
     /// the `SIGN_REQUEST` flags, which select the RSA hash and are ignored by
     /// key types that only have one signature algorithm.
-    fn sign(
-        &self,
-        key_blob: &[u8],
-        data: &[u8],
-        flags: u32,
-    ) -> Result<Option<Vec<u8>>, AgentError>;
+    fn sign(&self, key_blob: &[u8], data: &[u8], flags: u32)
+        -> Result<Option<Vec<u8>>, AgentError>;
 }
 
 /// A frame length outside the accepted range. Either way the connection cannot
@@ -262,7 +258,8 @@ mod tests {
             data: &[u8],
             flags: u32,
         ) -> Result<Option<Vec<u8>>, AgentError> {
-            self.last_flags.store(flags, std::sync::atomic::Ordering::Relaxed);
+            self.last_flags
+                .store(flags, std::sync::atomic::Ordering::Relaxed);
             if let Some(e) = self.error {
                 return Err(e);
             }
@@ -342,7 +339,9 @@ mod tests {
         let blob = reader.string().expect("signature blob");
         assert!(reader.is_empty());
         assert_eq!(
-            backend.last_flags.load(std::sync::atomic::Ordering::Relaxed),
+            backend
+                .last_flags
+                .load(std::sync::atomic::Ordering::Relaxed),
             0x4
         );
 
@@ -412,7 +411,10 @@ mod tests {
             frame_length(&too_big),
             Err(FrameError::TooLarge(MAX_FRAME_LEN + 1))
         );
-        assert_eq!(frame_length(&(MAX_FRAME_LEN as u32).to_be_bytes()), Ok(MAX_FRAME_LEN));
+        assert_eq!(
+            frame_length(&(MAX_FRAME_LEN as u32).to_be_bytes()),
+            Ok(MAX_FRAME_LEN)
+        );
         assert_eq!(frame_length(&[0, 0, 0, 1]), Ok(1));
     }
 

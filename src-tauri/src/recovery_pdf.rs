@@ -190,7 +190,10 @@ fn render(vault_name: &str, code: &str, created_at: i64) -> Vec<u8> {
 /// `ABCD-EFGH-...` — the code arrives already grouped by the core; this only
 /// re-groups when it is not, so the sheet never depends on the caller's format.
 fn group_code(code: &str) -> String {
-    let bare: String = code.chars().filter(|ch| ch.is_ascii_alphanumeric()).collect();
+    let bare: String = code
+        .chars()
+        .filter(|ch| ch.is_ascii_alphanumeric())
+        .collect();
     bare.as_bytes()
         .chunks(4)
         .map(|chunk| String::from_utf8_lossy(chunk).into_owned())
@@ -258,10 +261,7 @@ fn content_stream(lines: &[(f32, String)]) -> Vec<u8> {
             "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 {PAGE_WIDTH:.0} {PAGE_HEIGHT:.0}] \
              /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>"
         ),
-        format!(
-            "<< /Length {} >>\nstream\n{stream}endstream",
-            stream.len()
-        ),
+        format!("<< /Length {} >>\nstream\n{stream}endstream", stream.len()),
         "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>".to_string(),
     ];
 
@@ -345,7 +345,10 @@ mod tests {
             .expect("offset")
             .parse()
             .expect("a number");
-        assert!(text[offset..].starts_with("xref"), "startxref points at xref");
+        assert!(
+            text[offset..].starts_with("xref"),
+            "startxref points at xref"
+        );
     }
 
     #[test]

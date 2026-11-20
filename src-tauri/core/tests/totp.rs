@@ -26,17 +26,15 @@ fn otpauth_period_is_honoured() {
 fn a_zero_period_cannot_reach_the_cycle_arithmetic() {
     // `period=0` would divide by zero in `code_now`; the parser clamps it to a
     // one-second cycle instead of trusting the URI.
-    let current =
-        totp::code_now("otpauth://totp/Acme:alice?secret=JBSWY3DPEHPK3PXP&period=0")
-            .expect("a zero period must still produce a code");
+    let current = totp::code_now("otpauth://totp/Acme:alice?secret=JBSWY3DPEHPK3PXP&period=0")
+        .expect("a zero period must still produce a code");
     assert_eq!(current.period, 1);
     assert_eq!(current.code.len(), 6);
 }
 
 #[test]
 fn digits_are_clamped_to_a_usable_range() {
-    let current =
-        totp::code_now("otpauth://totp/Acme:alice?secret=JBSWY3DPEHPK3PXP&digits=0")
-            .expect("zero digits must still produce a code");
+    let current = totp::code_now("otpauth://totp/Acme:alice?secret=JBSWY3DPEHPK3PXP&digits=0")
+        .expect("zero digits must still produce a code");
     assert_eq!(current.code.len(), 1, "digits are clamped to at least 1");
 }

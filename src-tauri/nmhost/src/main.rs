@@ -38,10 +38,7 @@ fn main() {
             Ok(Some(body)) => body,
             Ok(None) => return,
             Err(error) => {
-                let _ = frame::write(
-                    &mut output,
-                    &error_frame("bad_request", &error.to_string()),
-                );
+                let _ = frame::write(&mut output, &error_frame("bad_request", &error.to_string()));
                 std::process::exit(1);
             }
         };
@@ -124,7 +121,10 @@ mod tests {
         let response = handle(b"{");
         assert_eq!(response["ok"], json!(false));
         assert_eq!(response["error"], json!("bad_request"));
-        assert!(response["message"].as_str().unwrap().contains("invalid JSON"));
+        assert!(response["message"]
+            .as_str()
+            .unwrap()
+            .contains("invalid JSON"));
     }
 
     #[test]

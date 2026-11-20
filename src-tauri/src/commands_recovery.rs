@@ -6,9 +6,7 @@
 //! password, and `recovery_finish` opens the session only after the caller has
 //! seen the replacement code.
 
-use kestrel_core::session::{
-    RecoveryCompletion, RecoveryOpen, VaultState, VaultStateDto,
-};
+use kestrel_core::session::{RecoveryCompletion, RecoveryOpen, VaultState, VaultStateDto};
 use kestrel_core::store::{RecoveryKit, RecoveryStatus};
 use tauri::State;
 
@@ -32,10 +30,7 @@ pub fn recovery_create(state: State<'_, VaultState>) -> Result<RecoveryKit, Stri
 /// Unwrap the master key from a printed code. The vault stays locked until a
 /// new master password is set.
 #[tauri::command]
-pub fn recovery_unlock(
-    state: State<'_, VaultState>,
-    code: String,
-) -> Result<RecoveryOpen, String> {
+pub fn recovery_unlock(state: State<'_, VaultState>, code: String) -> Result<RecoveryOpen, String> {
     state.recovery_unlock(&code).map_err(err)
 }
 

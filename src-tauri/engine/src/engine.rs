@@ -130,7 +130,8 @@ fn sync_inner(ctx: &SyncContext<'_>) -> Result<SyncReport, EngineError> {
     // rows for them: they were saved before this device had an identity. Seed
     // them now, so the first run uploads the vault instead of reporting "nothing
     // to do". Idempotent, so every run may call it.
-    ctx.store.sync_backfill(&ctx.meta.vault_uuid, ctx.device_id)?;
+    ctx.store
+        .sync_backfill(&ctx.meta.vault_uuid, ctx.device_id)?;
     let mut cursor = load_cursor(ctx)?;
     let mut pulled = 0u64;
     let mut pushed = 0u64;
@@ -148,10 +149,8 @@ fn sync_inner(ctx: &SyncContext<'_>) -> Result<SyncReport, EngineError> {
     ctx.store.sync_meta_set("cursor", &cursor.to_string())?;
     ctx.store
         .sync_meta_set("last_sync_at", &now_secs().to_string())?;
-    ctx.store.sync_meta_set(
-        "state",
-        if conflicts > 0 { "conflict" } else { "idle" },
-    )?;
+    ctx.store
+        .sync_meta_set("state", if conflicts > 0 { "conflict" } else { "idle" })?;
     ctx.store.sync_meta_remove("error")?;
     Ok(SyncReport {
         pulled,
@@ -201,11 +200,7 @@ pub(crate) fn ensure_account(ctx: &SyncContext<'_>) -> Result<(), EngineError> {
 
 /* ------------------------------------------------------------------ pull ---- */
 
-fn pull(
-    ctx: &SyncContext<'_>,
-    cursor: &mut u64,
-    pulled: &mut u64,
-) -> Result<bool, EngineError> {
+fn pull(ctx: &SyncContext<'_>, cursor: &mut u64, pulled: &mut u64) -> Result<bool, EngineError> {
     let mut changed = false;
     let mut since = *cursor;
     loop {
@@ -243,7 +238,10 @@ fn apply_pull_op(ctx: &SyncContext<'_>, op: &PullOp) -> Result<bool, EngineError
     // vaults. An id this vault has never tracked and does not contain is another
     // vault's item: it is skipped here and applied when that vault is unlocked.
     // Anything this vault does know must open, so corruption is still an error.
-    let known = ctx.store.sync_state(&ctx.meta.vault_uuid, &op.item_id)?.is_some()
+    let known = ctx
+        .store
+        .sync_state(&ctx.meta.vault_uuid, &op.item_id)?
+        .is_some()
         || ctx.store.get(ctx.master, ctx.meta, &op.item_id).is_ok();
     let remote = match open_remote(ctx, &op.item_id, op.deleted, &op.ciphertext, &op.clock) {
         Ok(remote) => remote,
@@ -356,19 +354,17 @@ fn merge_remote(
     };
     let remote_body = remote_body(local.clone(), remote);
 
-    match merge_bodies(
-        &local,
-        &state.clock,
-        &remote_body,
-        &op.clock,
-        ctx.device_id,
-    ) {
+    match merge_bodies(&local, &state.clock, &remote_body, &op.clock, ctx.device_id) {
         Merge::Local => Ok(false),
         Merge::Remote => {
             adopt_remote(ctx, &state.item_id, remote, &op.clock)?;
             Ok(true)
         }
-        Merge::Merged { body, clock, conflicts } => {
+        Merge::Merged {
+            body,
+            clock,
+            conflicts,
+        } => {
             if conflicts.is_empty() {
                 write_merged(ctx, &body, &clock)?;
             } else {
@@ -383,8 +379,12 @@ fn merge_remote(
                 // Keep the local write pending so it cannot be lost while the
                 // user decides; a clean row becomes dirty again on purpose.
                 if !state.dirty {
-                    ctx.store
-                        .sync_upsert(&ctx.meta.vault_uuid, &state.item_id, &state.clock, true)?;
+                    ctx.store.sync_upsert(
+                        &ctx.meta.vault_uuid,
+                        &state.item_id,
+                        &state.clock,
+                        true,
+                    )?;
                 }
             }
             Ok(true)
@@ -418,13 +418,7 @@ fn open_remote(
         )));
     }
     let sealed = codec::decode(ciphertext)?;
-    let body = open_body(
-        ctx.account_key,
-        ctx.account_id,
-        item_id,
-        clock,
-        &sealed,
-    )?;
+    let body = open_body(ctx.account_key, ctx.account_id, item_id, clock, &sealed)?;
     Ok(RemoteBody {
         body: Some(body),
         sealed: Some(sealed),
@@ -482,13 +476,7 @@ fn local_body(
     match (current, baseline) {
         (None, None) => Ok(None),
         (None, Some((sealed, sealed_at))) => {
-            let mut body = open_body(
-                ctx.account_key,
-                ctx.account_id,
-                item_id,
-                sealed_at,
-                sealed,
-            )?;
+            let mut body = open_body(ctx.account_key, ctx.account_id, item_id, sealed_at, sealed)?;
             body.deleted = true;
             Ok(Some(body))
         }
@@ -505,13 +493,7 @@ fn local_body(
             }))
         }
         (Some(item), Some((sealed, sealed_at))) => {
-            let base = open_body(
-                ctx.account_key,
-                ctx.account_id,
-                item_id,
-                sealed_at,
-                sealed,
-            )?;
+            let base = open_body(ctx.account_key, ctx.account_id, item_id, sealed_at, sealed)?;
             Ok(Some(rebuild_body(&base, &item, trashed, clock)))
         }
     }
@@ -539,7 +521,9 @@ fn rebuild_body(base: &SyncBody, item: &Item, trashed: bool, clock: &Clock) -> S
             "favorite" => item.favorite != base.item.favorite,
             "totp_secret" => item.totp_secret != base.item.totp_secret,
             other => match other.strip_prefix("fields.") {
-                Some(field_id) => !fields_equal(field_at(item, field_id), field_at(&base.item, field_id)),
+                Some(field_id) => {
+                    !fields_equal(field_at(item, field_id), field_at(&base.item, field_id))
+                }
                 // A path from a body this build does not know is left alone.
                 None => false,
             },
@@ -612,10 +596,7 @@ struct PendingOp {
     sealed: Option<Vec<u8>>,
 }
 
-fn push_batch(
-    ctx: &SyncContext<'_>,
-    batch: &[ItemSyncState],
-) -> Result<PushOutcome, EngineError> {
+fn push_batch(ctx: &SyncContext<'_>, batch: &[ItemSyncState]) -> Result<PushOutcome, EngineError> {
     let mut pending = Vec::with_capacity(batch.len());
     for state in batch {
         let baseline = match (&state.body, &state.body_clock) {
@@ -761,11 +742,8 @@ fn merge_push_conflict(
                     &entry.clock,
                 )?;
             }
-            ctx.store.sync_mark_clean(
-                &ctx.meta.vault_uuid,
-                &conflict.item_id,
-                &entry.clock,
-            )?;
+            ctx.store
+                .sync_mark_clean(&ctx.meta.vault_uuid, &conflict.item_id, &entry.clock)?;
             Ok(false)
         }
         Merge::Local => {
@@ -788,7 +766,11 @@ fn merge_push_conflict(
             adopt_remote(ctx, &conflict.item_id, &remote, &conflict.clock)?;
             Ok(true)
         }
-        Merge::Merged { body, clock, conflicts } => {
+        Merge::Merged {
+            body,
+            clock,
+            conflicts,
+        } => {
             if conflicts.is_empty() {
                 write_merged(ctx, &body, &clock)?;
                 Ok(true)
@@ -812,11 +794,7 @@ fn merge_push_conflict(
 /* --------------------------------------------------------------- writes ---- */
 
 /// Write a merged body and queue it for the next push.
-fn write_merged(
-    ctx: &SyncContext<'_>,
-    body: &SyncBody,
-    clock: &Clock,
-) -> Result<(), EngineError> {
+fn write_merged(ctx: &SyncContext<'_>, body: &SyncBody, clock: &Clock) -> Result<(), EngineError> {
     let item_id = body.item.id.as_str();
     if body.deleted {
         set_trashed(ctx, item_id, true)?;
@@ -825,13 +803,7 @@ fn write_merged(
             .save_item(ctx.master, ctx.meta, body.item.clone())?;
         set_trashed(ctx, item_id, false)?;
     }
-    let sealed = seal_body(
-        ctx.account_key,
-        ctx.account_id,
-        item_id,
-        clock,
-        body,
-    )?;
+    let sealed = seal_body(ctx.account_key, ctx.account_id, item_id, clock, body)?;
     ctx.store
         .sync_upsert(&ctx.meta.vault_uuid, item_id, clock, true)?;
     ctx.store
@@ -857,13 +829,7 @@ fn store_conflict(
     // the sender's bytes would be marginally cheaper and would let the row's
     // clock drift from the ciphertext's AAD, which is exactly the bug that makes
     // a conflict unopenable.
-    let local_body = seal_body(
-        ctx.account_key,
-        ctx.account_id,
-        item_id,
-        local_clock,
-        local,
-    )?;
+    let local_body = seal_body(ctx.account_key, ctx.account_id, item_id, local_clock, local)?;
     let remote_body = seal_body(
         ctx.account_key,
         ctx.account_id,
@@ -871,15 +837,17 @@ fn store_conflict(
         remote_clock,
         remote,
     )?;
-    ctx.store
-        .sync_conflict_put(&ctx.meta.vault_uuid, &SyncConflictRow {
-        item_id: item_id.to_string(),
-        local_clock: local_clock.clone(),
-        remote_clock: remote_clock.clone(),
-        local_body,
-        remote_body,
-        created_at: now_secs(),
-    })?;
+    ctx.store.sync_conflict_put(
+        &ctx.meta.vault_uuid,
+        &SyncConflictRow {
+            item_id: item_id.to_string(),
+            local_clock: local_clock.clone(),
+            remote_clock: remote_clock.clone(),
+            local_body,
+            remote_body,
+            created_at: now_secs(),
+        },
+    )?;
     Ok(())
 }
 
@@ -895,9 +863,7 @@ fn set_trashed(ctx: &SyncContext<'_>, item_id: &str, trashed: bool) -> Result<()
 fn load_cursor(ctx: &SyncContext<'_>) -> Result<u64, EngineError> {
     match ctx.store.sync_meta_get("cursor")? {
         None => Ok(0),
-        Some(text) => text
-            .parse::<u64>()
-            .map_err(|_| EngineError::Cursor(text)),
+        Some(text) => text.parse::<u64>().map_err(|_| EngineError::Cursor(text)),
     }
 }
 

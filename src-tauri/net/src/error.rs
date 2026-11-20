@@ -140,10 +140,7 @@ pub enum Error {
     },
     /// `409`: the request collides with existing state.
     #[error("conflict ({code}): {message}")]
-    Conflict {
-        code: ConflictCode,
-        message: String,
-    },
+    Conflict { code: ConflictCode, message: String },
     /// `400` or `403`: the request was well-formed HTTP but refused.
     #[error("rejected ({code}): {message}")]
     Rejected { code: String, message: String },

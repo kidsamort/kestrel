@@ -68,7 +68,10 @@ pub const MAX_DEPTH: usize = 16;
 /// Decode exactly one item. Trailing bytes are an error, so a request cannot
 /// smuggle a second message past the parser.
 pub fn decode(input: &[u8]) -> Result<Value, CborError> {
-    let mut cursor = Cursor { bytes: input, at: 0 };
+    let mut cursor = Cursor {
+        bytes: input,
+        at: 0,
+    };
     let value = cursor.item(0)?;
     if cursor.at != input.len() {
         return Err(CborError::TrailingBytes);
@@ -106,9 +109,7 @@ impl Cursor<'_> {
             }
             26 => {
                 let bytes = self.take(4)?;
-                u64::from(u32::from_be_bytes([
-                    bytes[0], bytes[1], bytes[2], bytes[3],
-                ]))
+                u64::from(u32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]))
             }
             27 => {
                 let bytes = self.take(8)?;
@@ -144,8 +145,7 @@ impl Cursor<'_> {
             }
             3 => {
                 let len = self.length(info)?;
-                let text =
-                    std::str::from_utf8(self.take(len)?).map_err(|_| CborError::BadText)?;
+                let text = std::str::from_utf8(self.take(len)?).map_err(|_| CborError::BadText)?;
                 Ok(Value::Text(text.to_string()))
             }
             4 => {
@@ -391,7 +391,10 @@ mod tests {
         // Truncated byte string.
         assert_eq!(decode(&[0x43, 1, 2]), Err(CborError::UnexpectedEof));
         // Indefinite-length byte string.
-        assert_eq!(decode(&[0x5f, 0x41, 0x01, 0xff]), Err(CborError::Unsupported(31)));
+        assert_eq!(
+            decode(&[0x5f, 0x41, 0x01, 0xff]),
+            Err(CborError::Unsupported(31))
+        );
         // Tag (major 6).
         assert_eq!(decode(&[0xc0, 0x01]), Err(CborError::Unsupported(6)));
         // Float16 (major 7, info 25).

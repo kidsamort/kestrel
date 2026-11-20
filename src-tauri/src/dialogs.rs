@@ -28,8 +28,8 @@ use windows::core::{HRESULT, HSTRING, PWSTR};
 use windows::Win32::Foundation::{ERROR_CANCELLED, RPC_E_CHANGED_MODE};
 #[cfg(windows)]
 use windows::Win32::System::Com::{
-    CoCreateInstance, CoInitializeEx, CoTaskMemFree, CoUninitialize, IBindCtx, CLSCTX_INPROC_SERVER,
-    COINIT_APARTMENTTHREADED,
+    CoCreateInstance, CoInitializeEx, CoTaskMemFree, CoUninitialize, IBindCtx,
+    CLSCTX_INPROC_SERVER, COINIT_APARTMENTTHREADED,
 };
 #[cfg(windows)]
 use windows::Win32::UI::Shell::{

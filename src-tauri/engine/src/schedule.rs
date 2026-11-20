@@ -67,9 +67,7 @@ impl Schedule {
         let doubled = self
             .interval()
             .saturating_mul(1u64 << consecutive_failures.min(6));
-        doubled
-            .min(BACKOFF_CAP_SECS)
-            .max(self.interval())
+        doubled.min(BACKOFF_CAP_SECS).max(self.interval())
     }
 
     /// The debounce for a write-triggered sync: several saves in a row are one

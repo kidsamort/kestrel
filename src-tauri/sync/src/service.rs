@@ -132,8 +132,7 @@ impl App {
             }
             _ if path.starts_with("/v1/devices/") => {
                 require(method, "DELETE")?;
-                let device_id =
-                    api::validate_id("device_id", &path["/v1/devices/".len()..])?;
+                let device_id = api::validate_id("device_id", &path["/v1/devices/".len()..])?;
                 self.revoke_device(&request, &device_id)
             }
             _ => Err(ApiError::not_found("no such route")),
@@ -387,9 +386,7 @@ impl App {
                     },
                 ))
             }
-            RevokeOutcome::Unknown => Err(ApiError::not_found(
-                "no such device in this account",
-            )),
+            RevokeOutcome::Unknown => Err(ApiError::not_found("no such device in this account")),
             RevokeOutcome::SelfRevoke => Err(ApiError::bad_request(
                 "invalid_field",
                 "a device cannot revoke itself",
@@ -424,11 +421,7 @@ impl App {
         Ok(json_response(StatusCode::OK, &view))
     }
 
-    fn pull(
-        &self,
-        request: &RequestParts,
-        query: &str,
-    ) -> Result<Response<Full<Bytes>>, ApiError> {
+    fn pull(&self, request: &RequestParts, query: &str) -> Result<Response<Full<Bytes>>, ApiError> {
         let account = self.authenticate(request)?;
         let (since, limit) = parse_pull_query(query)?;
 
@@ -592,10 +585,7 @@ pub fn response_with_body(status: StatusCode, bytes: Vec<u8>) -> Response<Full<B
         header::CONTENT_TYPE,
         HeaderValue::from_static("application/json"),
     );
-    headers.insert(
-        header::CACHE_CONTROL,
-        HeaderValue::from_static("no-store"),
-    );
+    headers.insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
     headers.insert(
         header::HeaderName::from_static(PROTOCOL_HEADER),
         HeaderValue::from_static(PROTOCOL_VERSION),
@@ -620,11 +610,11 @@ mod tests {
 
     #[test]
     fn pull_query_defaults_and_clamps() {
-        assert_eq!(parse_pull_query("").expect("default"), (0, PULL_DEFAULT_LIMIT));
         assert_eq!(
-            parse_pull_query("since=7&limit=5").expect("parsed"),
-            (7, 5)
+            parse_pull_query("").expect("default"),
+            (0, PULL_DEFAULT_LIMIT)
         );
+        assert_eq!(parse_pull_query("since=7&limit=5").expect("parsed"), (7, 5));
         assert_eq!(
             parse_pull_query("limit=999999").expect("clamped"),
             (0, PULL_MAX_LIMIT)

@@ -172,7 +172,10 @@ fn reveal(auth: &Auth, backend: &dyn SdkBackend, token: &str, origin: &str) -> s
 fn one_origin_has_one_spelling() {
     let cases = [
         ("https://Example.COM:443", "https://example.com"),
-        ("https://Example.COM:443/login?next=1", "https://example.com"),
+        (
+            "https://Example.COM:443/login?next=1",
+            "https://example.com",
+        ),
         ("http://Example.com:80/", "http://example.com"),
         (" example.com/path ", "https://example.com"),
         ("https://example.com.", "https://example.com"),
@@ -190,7 +193,12 @@ fn one_origin_has_one_spelling() {
         Store::canonical_browser_origin("https://example.com").as_deref(),
         "the exact pair named in the acceptance case"
     );
-    for raw in ["ftp://example.com", "https://user@example.com", "https://x:0", ""] {
+    for raw in [
+        "ftp://example.com",
+        "https://user@example.com",
+        "https://x:0",
+        "",
+    ] {
         assert_eq!(Store::canonical_browser_origin(raw), None, "{raw}");
     }
 }
@@ -249,7 +257,11 @@ fn a_browser_token_without_fill_is_not_granted() {
     // No row: ask. That is the acceptance case "a Browser token with no rule".
     let response = reveal(&auth, &backend, &token, "https://example.com");
     assert_eq!(response["ok"], serde_json::json!(false), "{response}");
-    assert_eq!(response["error"], serde_json::json!("not_granted"), "{response}");
+    assert_eq!(
+        response["error"],
+        serde_json::json!("not_granted"),
+        "{response}"
+    );
 
     // Explicit off: still nothing.
     backend
@@ -259,7 +271,11 @@ fn a_browser_token_without_fill_is_not_granted() {
         .set_browser_rule("https://example.com", "off")
         .unwrap();
     let response = reveal(&auth, &backend, &token, "https://example.com");
-    assert_eq!(response["error"], serde_json::json!("not_granted"), "{response}");
+    assert_eq!(
+        response["error"],
+        serde_json::json!("not_granted"),
+        "{response}"
+    );
 
     // Fill: the same request succeeds.
     backend
@@ -313,10 +329,7 @@ fn the_token_file_is_user_only() {
         1,
         "exactly one ACE for the current user: {dacl}"
     );
-    assert!(
-        dacl.contains("S-1-5-"),
-        "the ACE names a user SID: {dacl}"
-    );
+    assert!(dacl.contains("S-1-5-"), "the ACE names a user SID: {dacl}");
     assert!(
         !dacl.contains(";;;WD)") && !dacl.contains(";;;BU)") && !dacl.contains(";;;AU)"),
         "Everyone/Users/Authenticated Users must not appear: {dacl}"
@@ -380,7 +393,11 @@ fn live_bridge() {
         fn protect(&self, _name: &str, _secret: &[u8]) -> Result<Vec<u8>, HelloError> {
             Err(HelloError::Unavailable("not used in this check".into()))
         }
-        fn unprotect(&self, _name: &str, _blob: &[u8]) -> Result<kestrel_core::crypto::SymKey, HelloError> {
+        fn unprotect(
+            &self,
+            _name: &str,
+            _blob: &[u8],
+        ) -> Result<kestrel_core::crypto::SymKey, HelloError> {
             Err(HelloError::Unavailable("not used in this check".into()))
         }
         fn forget(&self, _name: &str) -> Result<(), HelloError> {
@@ -509,7 +526,9 @@ fn live_bridge() {
     let state = Arc::new(
         VaultState::open_with_protector(db, Box::new(UnavailableProtector)).expect("vault opens"),
     );
-    state.create("correct horse battery staple").expect("vault created");
+    state
+        .create("correct horse battery staple")
+        .expect("vault created");
 
     let mut item = Item::new(Category::Login, "Bank".into());
     item.urls = vec!["https://Example.com/login".into()];
@@ -657,7 +676,10 @@ fn live_app_seed() {
     let dir = super::install::data_dir().expect("app data directory");
     std::fs::create_dir_all(&dir).expect("app data directory creates");
     if dir.join("kestrel.db").exists() {
-        panic!("refusing to overwrite an existing vault at {}", dir.display());
+        panic!(
+            "refusing to overwrite an existing vault at {}",
+            dir.display()
+        );
     }
 
     let state =

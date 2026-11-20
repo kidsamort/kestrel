@@ -134,10 +134,9 @@ impl Store {
 
     /// Drop a rule so the application falls back to the default (`ask`).
     pub fn clear_autofill_rule(&self, exe: &str) -> Result<bool, StoreError> {
-        let changed = self.conn().execute(
-            "DELETE FROM autofill_apps WHERE exe = ?1",
-            params![exe],
-        )?;
+        let changed = self
+            .conn()
+            .execute("DELETE FROM autofill_apps WHERE exe = ?1", params![exe])?;
         Ok(changed > 0)
     }
 
@@ -175,10 +174,8 @@ mod tests {
 
     impl TempStore {
         fn new() -> TempStore {
-            let path = std::env::temp_dir().join(format!(
-                "kestrel-autofill-{}.db",
-                uuid::Uuid::new_v4()
-            ));
+            let path =
+                std::env::temp_dir().join(format!("kestrel-autofill-{}.db", uuid::Uuid::new_v4()));
             let store = Store::open(&path).expect("store opens");
             TempStore { path, store }
         }

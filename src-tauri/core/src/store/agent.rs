@@ -80,10 +80,8 @@ mod tests {
 
     impl TempStore {
         fn new() -> TempStore {
-            let path = std::env::temp_dir().join(format!(
-                "kestrel-agent-policy-{}.db",
-                uuid::Uuid::new_v4()
-            ));
+            let path = std::env::temp_dir()
+                .join(format!("kestrel-agent-policy-{}.db", uuid::Uuid::new_v4()));
             let store = Store::open(&path).expect("store opens");
             TempStore { path, store }
         }

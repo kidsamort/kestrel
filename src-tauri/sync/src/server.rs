@@ -67,9 +67,7 @@ impl Server {
     /// finish on their own tasks; dropping them mid-write would be worse for a
     /// client than a connection that completes and then is not reused.
     pub async fn run(self, shutdown: impl Future<Output = ()>) -> Result<(), StartError> {
-        let Server {
-            listener, app, ..
-        } = self;
+        let Server { listener, app, .. } = self;
         let mut shutdown = std::pin::pin!(shutdown);
 
         loop {

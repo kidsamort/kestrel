@@ -39,7 +39,6 @@ use windows_sys::Win32::Storage::FileSystem::{
     FlushFileBuffers, ReadFile, WriteFile, FILE_FLAG_FIRST_PIPE_INSTANCE, FILE_FLAG_OVERLAPPED,
     PIPE_ACCESS_DUPLEX,
 };
-use windows_sys::Win32::System::IO::{CancelIoEx, GetOverlappedResult, OVERLAPPED};
 use windows_sys::Win32::System::Pipes::{
     ConnectNamedPipe, CreateNamedPipeW, DisconnectNamedPipe, PIPE_READMODE_BYTE,
     PIPE_REJECT_REMOTE_CLIENTS, PIPE_TYPE_BYTE, PIPE_UNLIMITED_INSTANCES, PIPE_WAIT,
@@ -48,6 +47,7 @@ use windows_sys::Win32::System::Threading::{
     CreateEventW, GetCurrentProcess, OpenProcessToken, SetEvent, WaitForMultipleObjects,
     WaitForSingleObject, INFINITE,
 };
+use windows_sys::Win32::System::IO::{CancelIoEx, GetOverlappedResult, OVERLAPPED};
 
 /// The pipe the CLI and SDK clients connect to.
 pub const PIPE_PATH: &str = r"\\.\pipe\kestrel-sdk";
@@ -493,8 +493,7 @@ fn complete(
 
 fn connect(pipe: HANDLE, io_event: &Handle, stop: &Handle) -> Result<(), ConnError> {
     let overlapped = overlapped(io_event.raw());
-    if unsafe { ConnectNamedPipe(pipe, &overlapped as *const OVERLAPPED as *mut OVERLAPPED) } != 0
-    {
+    if unsafe { ConnectNamedPipe(pipe, &overlapped as *const OVERLAPPED as *mut OVERLAPPED) } != 0 {
         return Ok(());
     }
     let code = last_error();

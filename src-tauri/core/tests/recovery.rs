@@ -57,7 +57,11 @@ fn recovery_forces_a_new_password_and_rekeys_everything() {
     login.title = "second version".into();
     let login = state.save(login).unwrap();
     let archived = state.history_list(&login.id).unwrap();
-    assert_eq!(archived.len(), 1, "one save archives the version it replaced");
+    assert_eq!(
+        archived.len(),
+        1,
+        "one save archives the version it replaced"
+    );
 
     let payload = vec![1u8, 2, 3, 4];
     let attachment = state
@@ -89,14 +93,23 @@ fn recovery_forces_a_new_password_and_rekeys_everything() {
     assert!(state.recovery_status().unwrap().enrolled);
 
     state.lock().unwrap();
-    assert!(matches!(state.list("", None, false), Err(VaultError::Locked)));
+    assert!(matches!(
+        state.list("", None, false),
+        Err(VaultError::Locked)
+    ));
 
     // The code opens the key, but not the session: until a new password exists
     // nothing else in the core may read or write.
     let opened = state.recovery_unlock(&kit.code).unwrap();
     assert_eq!(opened.vault_name, "Personal");
-    assert!(state.is_locked(), "a pending recovery is not an open session");
-    assert!(matches!(state.list("", None, false), Err(VaultError::Locked)));
+    assert!(
+        state.is_locked(),
+        "a pending recovery is not an open session"
+    );
+    assert!(matches!(
+        state.list("", None, false),
+        Err(VaultError::Locked)
+    ));
     assert!(matches!(state.recovery_create(), Err(VaultError::Locked)));
     assert!(matches!(state.get(&login.id), Err(VaultError::Locked)));
 
@@ -115,7 +128,10 @@ fn recovery_forces_a_new_password_and_rekeys_everything() {
     // The rotation committed, but the new key is still pending: the vault only
     // opens once the user acknowledges the replacement code.
     assert!(state.is_locked());
-    assert!(matches!(state.list("", None, false), Err(VaultError::Locked)));
+    assert!(matches!(
+        state.list("", None, false),
+        Err(VaultError::Locked)
+    ));
     assert!(!state.recovery_finish().unwrap().locked);
 
     // The code that opened the vault no longer opens anything: its row was
@@ -140,7 +156,10 @@ fn recovery_forces_a_new_password_and_rekeys_everything() {
     assert_eq!(state.list("", None, false).unwrap().len(), 1);
     assert_eq!(state.get(&login.id).unwrap().title, "second version");
     assert_eq!(
-        state.history_get(&login.id, archived[0].version).unwrap().title,
+        state
+            .history_get(&login.id, archived[0].version)
+            .unwrap()
+            .title,
         "first version"
     );
     assert_eq!(

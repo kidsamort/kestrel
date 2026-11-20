@@ -59,4 +59,3 @@ pub(super) fn reveal(
 ) -> Result<String, VaultError> {
     state.browser_reveal(origin, item_id, field)
 }
-

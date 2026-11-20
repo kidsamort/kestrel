@@ -14,15 +14,15 @@ mod commands_history;
 mod commands_portability;
 mod commands_recovery;
 mod commands_sync;
-mod sync_scheduler;
-mod vault_location;
 mod commands_trash;
 mod commands_vaults;
 mod dialogs;
-mod recovery_pdf;
 mod passkeys;
 mod quick;
+mod recovery_pdf;
 mod sdk;
+mod sync_scheduler;
+mod vault_location;
 
 use kestrel_core::session::VaultState;
 use std::time::Duration;

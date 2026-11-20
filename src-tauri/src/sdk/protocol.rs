@@ -308,12 +308,7 @@ pub trait SdkBackend: Send + Sync {
     /// origin must be `fill`, the item must have a URL on that origin, and the
     /// read is audited before the value is returned. Everything else is
     /// `not_granted`.
-    fn browser_reveal(
-        &self,
-        origin: &str,
-        item_id: &str,
-        field: &str,
-    ) -> Result<String, SdkError>;
+    fn browser_reveal(&self, origin: &str, item_id: &str, field: &str) -> Result<String, SdkError>;
 
     /// Bring the app window forward. Used by the extension's "locked" chip;
     /// it reveals nothing, so it is allowed even without a token.
@@ -585,9 +580,12 @@ impl Auth {
         let before = pairings.len();
         pairings.retain(|pairing| match (&pairing.scope, client) {
             (Scope::Cli, None) => false,
-            (Scope::CliScoped { client: existing, .. }, Some(name)) => {
-                existing.as_str() != name
-            }
+            (
+                Scope::CliScoped {
+                    client: existing, ..
+                },
+                Some(name),
+            ) => existing.as_str() != name,
             _ => true,
         });
         pairings.len() != before
@@ -631,12 +629,7 @@ pub fn error_response(error: &SdkError) -> Value {
 }
 
 /// Answer one request. The returned value is exactly what goes on the wire.
-pub fn respond(
-    auth: &Auth,
-    backend: &dyn SdkBackend,
-    request: &Request,
-    pipe: &str,
-) -> Value {
+pub fn respond(auth: &Auth, backend: &dyn SdkBackend, request: &Request, pipe: &str) -> Value {
     match dispatch(auth, backend, request, pipe) {
         Ok(value) => value,
         Err(error) => error_response(&error),
@@ -688,7 +681,9 @@ fn dispatch(
         "items.list" | "items.copy" | "run" => {
             let (client, grants) = match &scope {
                 Scope::Cli => (None, None),
-                Scope::CliScoped { client, grants } => (Some(client.as_str()), Some(grants.as_slice())),
+                Scope::CliScoped { client, grants } => {
+                    (Some(client.as_str()), Some(grants.as_slice()))
+                }
                 _ => return Err(SdkError::Forbidden(request.op.clone())),
             };
             cli_op(backend, request, client, grants)
@@ -962,10 +957,7 @@ mod tests {
         }
 
         fn run(&self, argv: &[String], env: &[EnvBinding]) -> Result<RunOutput, SdkError> {
-            self.ran
-                .lock()
-                .unwrap()
-                .push((argv.to_vec(), env.to_vec()));
+            self.ran.lock().unwrap().push((argv.to_vec(), env.to_vec()));
             Ok(RunOutput {
                 exit_code: 0,
                 stdout: "ok\n".into(),
@@ -1191,7 +1183,10 @@ mod tests {
         assert!(auth.scope(Some(&second)).is_some());
         auth.revoke();
         assert!(!auth.paired());
-        assert!(auth.scope(Some(&second)).is_none(), "revoked tokens stay dead");
+        assert!(
+            auth.scope(Some(&second)).is_none(),
+            "revoked tokens stay dead"
+        );
     }
 
     #[test]
@@ -1204,9 +1199,7 @@ mod tests {
         auth.revoke();
         let lines = [
             format!(r#"{{"op":"items.list","token":"{token}"}}"#),
-            format!(
-                r#"{{"op":"items.copy","token":"{token}","id":"item-1","field":"field-2"}}"#
-            ),
+            format!(r#"{{"op":"items.copy","token":"{token}","id":"item-1","field":"field-2"}}"#),
             format!(r#"{{"op":"run","token":"{token}","argv":["cmd"]}}"#),
             r#"{"op":"items.list"}"#.to_string(),
         ];
@@ -1244,7 +1237,10 @@ mod tests {
         );
         assert_eq!(response["ok"], json!(false));
         assert_eq!(response["error"], json!(ERR_INVALID_ENV_NAME));
-        assert!(backend.ran.lock().unwrap().is_empty(), "nothing was spawned");
+        assert!(
+            backend.ran.lock().unwrap().is_empty(),
+            "nothing was spawned"
+        );
     }
 
     #[test]
@@ -1294,7 +1290,10 @@ mod tests {
         assert_eq!(field["kind"], json!("password"));
         // The whole response is metadata: no value key anywhere.
         let serialised = response.to_string();
-        assert!(!serialised.contains(SECRET), "list leaked a value: {serialised}");
+        assert!(
+            !serialised.contains(SECRET),
+            "list leaked a value: {serialised}"
+        );
         assert!(!serialised.contains("\"value\""), "list has a value key");
         assert!(
             backend.revealed.lock().unwrap().is_empty(),
@@ -1365,7 +1364,10 @@ mod tests {
         );
         assert_eq!(response["ok"], json!(false));
         assert_eq!(response["error"], json!(ERR_NOT_GRANTED));
-        assert!(backend.revealed.lock().unwrap().is_empty(), "nothing to audit");
+        assert!(
+            backend.revealed.lock().unwrap().is_empty(),
+            "nothing to audit"
+        );
     }
 
     #[test]
@@ -1374,9 +1376,7 @@ mod tests {
         let token = auth.pair();
         let backend = FakeBackend::unlocked();
         for line in [
-            format!(
-                r#"{{"op":"items.reveal","token":"{token}","id":"item-1","field":"field-2"}}"#
-            ),
+            format!(r#"{{"op":"items.reveal","token":"{token}","id":"item-1","field":"field-2"}}"#),
             format!(r#"{{"op":"secrets.list","token":"{token}"}}"#),
         ] {
             let response = respond(&auth, &backend, &request(&line), PIPE);
@@ -1396,9 +1396,7 @@ mod tests {
         let backend = FakeBackend::unlocked();
         let lines = [
             format!(r#"{{"op":"items.list","token":"{token}"}}"#),
-            format!(
-                r#"{{"op":"items.copy","token":"{token}","id":"item-1","field":"field-2"}}"#
-            ),
+            format!(r#"{{"op":"items.copy","token":"{token}","id":"item-1","field":"field-2"}}"#),
             format!(r#"{{"op":"run","token":"{token}","argv":["cmd"]}}"#),
         ];
         for line in lines {
@@ -1429,22 +1427,25 @@ mod tests {
 
         // Re-pairing one client replaces only that client's token.
         let editor_again = auth.pair_mcp("editor", vec![grant("item-1", "field-2")]);
-        assert!(auth.scope(Some(&editor)).is_none(), "the old editor token is dead");
+        assert!(
+            auth.scope(Some(&editor)).is_none(),
+            "the old editor token is dead"
+        );
         assert!(auth.scope(Some(&editor_again)).is_some());
         assert!(auth.scope(Some(&cli)).is_some());
         assert!(auth.scope(Some(&assistant)).is_some());
 
         assert_eq!(
             auth.mcp_clients(),
-            vec![
-                ("assistant".to_string(), 1),
-                ("editor".to_string(), 1),
-            ]
+            vec![("assistant".to_string(), 1), ("editor".to_string(), 1),]
         );
         assert!(auth.revoke_mcp("editor"));
         assert!(!auth.revoke_mcp("editor"), "idempotent");
         assert!(auth.scope(Some(&editor_again)).is_none());
-        assert!(auth.scope(Some(&assistant)).is_some(), "other clients are untouched");
+        assert!(
+            auth.scope(Some(&assistant)).is_some(),
+            "other clients are untouched"
+        );
 
         auth.revoke();
         assert!(auth.scope(Some(&assistant)).is_none());
@@ -1467,7 +1468,10 @@ mod tests {
             PIPE,
         );
         assert_eq!(response["ok"], json!(true));
-        assert_eq!(*backend.listed.lock().unwrap(), vec!["terminal".to_string()]);
+        assert_eq!(
+            *backend.listed.lock().unwrap(),
+            vec!["terminal".to_string()]
+        );
 
         // A field outside the token's list never reaches the backend.
         let response = respond(
@@ -1544,10 +1548,7 @@ mod tests {
         ));
         let legacy_again = auth.pair();
         assert!(auth.scope(Some(&scoped)).is_none());
-        assert!(matches!(
-            auth.scope(Some(&legacy_again)),
-            Some(Scope::Cli)
-        ));
+        assert!(matches!(auth.scope(Some(&legacy_again)), Some(Scope::Cli)));
         assert!(auth.cli_paired());
     }
 

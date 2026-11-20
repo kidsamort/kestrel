@@ -7,10 +7,10 @@
 //! protector. That protector lives only in this test binary: the library has no
 //! mock, no fallback and no test-only branch that ships.
 
+use kestrel_core::crypto::SymKey;
 use kestrel_core::hello::{HelloError, Mechanism, Protector};
 use kestrel_core::model::{Category, Item};
 use kestrel_core::session::{VaultError, VaultState};
-use kestrel_core::crypto::SymKey;
 use kestrel_core::store::SCHEMA_VERSION;
 use std::collections::HashMap;
 use std::path::Path;
@@ -278,7 +278,10 @@ fn disable_removes_row_and_key() {
     state.lock().unwrap();
     match state.hello_unlock() {
         Err(VaultError::Hello(HelloError::NotEnrolled)) => {}
-        other => panic!("expected NotEnrolled, got {other:?}", other = other.map(|s| s.locked)),
+        other => panic!(
+            "expected NotEnrolled, got {other:?}",
+            other = other.map(|s| s.locked)
+        ),
     }
     assert!(state.state().unwrap().locked, "still locked");
 }
@@ -314,10 +317,15 @@ fn a_substituted_key_is_rejected_before_it_becomes_a_session() {
     // Same vault file and the same enrolment row, but a protector that hands
     // back different key material for the right gesture.
     drop(state);
-    assert!(hello_row(&path).is_some(), "the enrolment survives the lock");
+    assert!(
+        hello_row(&path).is_some(),
+        "the enrolment survives the lock"
+    );
     let impostor = MemoryProtector::new(Behaviour::SubstituteKey);
     let state = VaultState::open_with_protector(path.clone(), impostor.boxed()).unwrap();
-    let error = state.hello_unlock().expect_err("wrong key must not open the vault");
+    let error = state
+        .hello_unlock()
+        .expect_err("wrong key must not open the vault");
     match error {
         VaultError::Hello(HelloError::WrongKey) => {}
         other => panic!("expected WrongKey, got {other}"),
@@ -352,7 +360,10 @@ fn unavailable_platform_is_reported_as_such() {
     assert!(detail.contains("not available"), "detail: {detail}");
 
     let error = state.hello_enroll().expect_err("cannot enrol");
-    assert!(matches!(error, VaultError::Hello(HelloError::Unavailable(_))));
+    assert!(matches!(
+        error,
+        VaultError::Hello(HelloError::Unavailable(_))
+    ));
     assert!(hello_row(&path).is_none());
 }
 
@@ -400,7 +411,10 @@ fn an_unknown_mechanism_is_reported_not_guessed() {
         Err(VaultError::Hello(HelloError::UnknownMechanism(text))) => {
             assert_eq!(text, "future-mechanism")
         }
-        other => panic!("expected UnknownMechanism, got {other:?}", other = other.map(|s| s.locked)),
+        other => panic!(
+            "expected UnknownMechanism, got {other:?}",
+            other = other.map(|s| s.locked)
+        ),
     }
 }
 
@@ -424,11 +438,16 @@ fn a_password_change_drops_the_wrapped_key() {
     state.lock().unwrap();
     match state.hello_unlock() {
         Err(VaultError::Hello(HelloError::NotEnrolled)) => {}
-        other => panic!("expected NotEnrolled, got {other:?}", other = other.map(|s| s.locked)),
+        other => panic!(
+            "expected NotEnrolled, got {other:?}",
+            other = other.map(|s| s.locked)
+        ),
     }
 
     // The new password is the way in, and Hello can be enabled again.
-    state.unlock("a different long password").expect("new password");
+    state
+        .unlock("a different long password")
+        .expect("new password");
     assert!(state.hello_enroll().expect("re-enrolment").enrolled);
 }
 
@@ -527,7 +546,9 @@ fn a_password_change_clears_every_enrolment() {
     assert_eq!(protector.key_count(), 1);
 
     state.switch_vault(&second.uuid).expect("switched");
-    state.change_password(PW, "another long passphrase").expect("rotated");
+    state
+        .change_password(PW, "another long passphrase")
+        .expect("rotated");
 
     assert!(
         !state.hello_status().unwrap().enrolled,

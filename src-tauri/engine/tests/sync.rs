@@ -73,8 +73,7 @@ fn hex_decode(text: &str) -> Vec<u8> {
 /// The net crate encodes it; the test has to decode it back to feed the core's
 /// hex-shaped claim input, and this crate does not depend on `base64` itself.
 fn base64_decode(text: &str) -> Vec<u8> {
-    const TABLE: &[u8; 64] =
-        b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    const TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     let mut out = Vec::new();
     let mut buffer: u32 = 0;
     let mut bits = 0u32;
@@ -477,7 +476,11 @@ fn the_same_field_changed_on_both_sides_surfaces_a_conflict_and_converges() {
     b.sync(); // B pulls it concurrently, then its own push is rejected
 
     let views = b.views();
-    assert_eq!(views.len(), 1, "the side whose push lost holds the conflict");
+    assert_eq!(
+        views.len(),
+        1,
+        "the side whose push lost holds the conflict"
+    );
     let view = &views[0];
     assert_eq!(view.item_id, item.id);
     assert_eq!(view.title, "B version");
@@ -490,8 +493,16 @@ fn the_same_field_changed_on_both_sides_surfaces_a_conflict_and_converges() {
     assert_eq!(title.local, "B version");
     assert_eq!(title.remote, "A version");
     assert!(!title.sensitive);
-    assert_eq!(b.get(&item.id).title, "B version", "nothing changed silently");
-    assert_eq!(a.get(&item.id).title, "A version", "nothing changed silently");
+    assert_eq!(
+        b.get(&item.id).title,
+        "B version",
+        "nothing changed silently"
+    );
+    assert_eq!(
+        a.get(&item.id).title,
+        "A version",
+        "nothing changed silently"
+    );
     assert!(
         a.views().is_empty(),
         "the side the server accepted has nothing to resolve"

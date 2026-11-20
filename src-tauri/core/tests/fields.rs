@@ -8,8 +8,8 @@
 //! fails here.
 
 use kestrel_core::model::{
-    normalize_seed_phrase, seed_word_count, seed_word_count_ok, Category, Field, Item,
-    DATE_KIND, SEED_PHRASE_KIND, SEED_WORD_COUNTS,
+    normalize_seed_phrase, seed_word_count, seed_word_count_ok, Category, Field, Item, DATE_KIND,
+    SEED_PHRASE_KIND, SEED_WORD_COUNTS,
 };
 use kestrel_core::store::{search_text, Store};
 use std::path::PathBuf;
@@ -17,7 +17,8 @@ use std::path::PathBuf;
 const PW: &str = "correct horse battery staple";
 
 /// Twelve BIP-39-shaped words; `zebra` is the distinctive needle.
-const PHRASE: &str = "zebra orbit lantern canyon velvet meadow copper falcon garden whisper marble tide";
+const PHRASE: &str =
+    "zebra orbit lantern canyon velvet meadow copper falcon garden whisper marble tide";
 
 fn scratch() -> (tempfile::TempDir, PathBuf) {
     let dir = tempfile::tempdir().expect("temp dir");
@@ -42,7 +43,10 @@ fn assert_unique_ids(fields: &[Field]) {
 
 /// Join `count` words so the whitespace-normalising helpers see a real phrase.
 fn phrase_of(count: usize) -> String {
-    (1..=count).map(|n| format!("word{n}")).collect::<Vec<_>>().join(" ")
+    (1..=count)
+        .map(|n| format!("word{n}"))
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 #[test]
@@ -54,8 +58,16 @@ fn wallet_template_is_address_network_path_phrase_and_password() {
             ("wallet address".to_string(), "text".to_string(), false),
             ("network".to_string(), "text".to_string(), false),
             ("derivation path".to_string(), "text".to_string(), false),
-            ("recovery phrase".to_string(), SEED_PHRASE_KIND.to_string(), true),
-            ("spending password".to_string(), "password".to_string(), true),
+            (
+                "recovery phrase".to_string(),
+                SEED_PHRASE_KIND.to_string(),
+                true
+            ),
+            (
+                "spending password".to_string(),
+                "password".to_string(),
+                true
+            ),
         ]
     );
     assert_unique_ids(&item.fields);

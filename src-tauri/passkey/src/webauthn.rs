@@ -6,7 +6,7 @@
 //! keeps key material or touches a vault.
 
 use crate::cbor::{self, Value};
-use crate::cose::{CoseKey, CoseError, SigningMaterial};
+use crate::cose::{CoseError, CoseKey, SigningMaterial};
 use p256::ecdsa::signature::{Signer, Verifier};
 use p256::ecdsa::{Signature, VerifyingKey};
 use sha2::{Digest, Sha256};
@@ -100,7 +100,9 @@ impl AuthenticatorData<'_> {
             RP_ID_HASH_LEN
                 + 1
                 + 4
-                + self.attested.map_or(0, |(id, _)| AAGUID_LEN + 2 + id.len() + 77)
+                + self
+                    .attested
+                    .map_or(0, |(id, _)| AAGUID_LEN + 2 + id.len() + 77)
                 + self.extensions.map_or(0, <[u8]>::len),
         );
         out.extend_from_slice(&self.rp_id_hash);
@@ -144,7 +146,10 @@ pub fn attestation_object(auth_data: &[u8]) -> Vec<u8> {
     cbor::encode(&Value::Map(vec![
         (Value::Text("fmt".into()), Value::Text("none".into())),
         (Value::Text("attStmt".into()), Value::Map(Vec::new())),
-        (Value::Text("authData".into()), Value::Bytes(auth_data.to_vec())),
+        (
+            Value::Text("authData".into()),
+            Value::Bytes(auth_data.to_vec()),
+        ),
     ]))
 }
 
@@ -172,8 +177,8 @@ pub fn verify_assertion(
     client_data_hash: &[u8],
     signature: &[u8],
 ) -> Result<(), WebAuthnError> {
-    let signature = Signature::from_der(signature)
-        .map_err(|_| WebAuthnError::MalformedSignature)?;
+    let signature =
+        Signature::from_der(signature).map_err(|_| WebAuthnError::MalformedSignature)?;
     let mut message = Vec::with_capacity(auth_data.len() + client_data_hash.len());
     message.extend_from_slice(auth_data);
     message.extend_from_slice(client_data_hash);
@@ -224,9 +229,7 @@ pub fn parse_make_credential(bytes: &[u8]) -> Result<MakeCredentialRequest, WebA
     if client_data_hash.len() != 32 {
         return Err(WebAuthnError::BadRequest("clientDataHash"));
     }
-    let rp = request
-        .get(2)
-        .ok_or(WebAuthnError::BadRequest("rp"))?;
+    let rp = request.get(2).ok_or(WebAuthnError::BadRequest("rp"))?;
     // The outer request map is integer-keyed (CTAP2 section 6.1), but every
     // nested WebAuthn entity is a map with the spec's *text* member names:
     // rp is {"id","name"}, user is {"id","name","displayName"}, a credential
@@ -244,9 +247,7 @@ pub fn parse_make_credential(bytes: &[u8]) -> Result<MakeCredentialRequest, WebA
         .and_then(Value::as_text)
         .unwrap_or(&rp_id)
         .to_string();
-    let user = request
-        .get(3)
-        .ok_or(WebAuthnError::BadRequest("user"))?;
+    let user = request.get(3).ok_or(WebAuthnError::BadRequest("user"))?;
     let user_id = user
         .get_text("id")
         .and_then(Value::as_bytes)
@@ -368,7 +369,10 @@ pub fn get_assertion_response(
     user: Option<(&[u8], &str, &str)>,
 ) -> Vec<u8> {
     let descriptor = Value::Map(vec![
-        (Value::Text("id".into()), Value::Bytes(credential_id.to_vec())),
+        (
+            Value::Text("id".into()),
+            Value::Bytes(credential_id.to_vec()),
+        ),
         (Value::Text("type".into()), Value::Text("public-key".into())),
     ]);
     let mut members = vec![
@@ -399,7 +403,10 @@ pub fn authenticator_get_info() -> Vec<u8> {
         // carry `maxMsgSize` and PIN protocol details this engine does not
         // implement. `uv` is absent rather than false because an option map
         // advertises support, and this provider has no PIN/biometric gesture.
-        (Value::Uint(1), Value::Array(vec![Value::Text("FIDO_2_0".into())])),
+        (
+            Value::Uint(1),
+            Value::Array(vec![Value::Text("FIDO_2_0".into())]),
+        ),
         (Value::Uint(3), Value::Bytes(crate::AAGUID.to_vec())),
         (
             Value::Uint(4),
@@ -437,26 +444,20 @@ mod tests {
     #[test]
     fn get_info_advertises_only_what_is_implemented() {
         let info = cbor::decode(&authenticator_get_info()).unwrap();
-        let versions = info
-            .get(1)
-            .and_then(Value::as_array)
-            .expect("versions");
+        let versions = info.get(1).and_then(Value::as_array).expect("versions");
         assert_eq!(versions, &[Value::Text("FIDO_2_0".into())]);
         let options = info.get(4).expect("options");
-        assert_eq!(
-            options.get_text("rk").and_then(Value::as_bool),
-            Some(true)
-        );
-        assert_eq!(
-            options.get_text("up").and_then(Value::as_bool),
-            Some(true)
-        );
+        assert_eq!(options.get_text("rk").and_then(Value::as_bool), Some(true));
+        assert_eq!(options.get_text("up").and_then(Value::as_bool), Some(true));
         assert_eq!(
             options.get_text("uv"),
             None,
             "no PIN or biometric verification, so uv must not be advertised"
         );
-        assert_eq!(info.get(3).and_then(Value::as_bytes), Some(&crate::AAGUID[..]));
+        assert_eq!(
+            info.get(3).and_then(Value::as_bytes),
+            Some(&crate::AAGUID[..])
+        );
         assert_eq!(info.get(5).and_then(Value::as_int), Some(1200));
     }
 
@@ -615,12 +616,8 @@ mod tests {
     fn assertion_verifies_against_the_key_embedded_in_attested_data() {
         let material = SigningMaterial::from_bytes(&[0x21u8; 32]).unwrap();
         let credential_id = [0x33u8; CREDENTIAL_ID_LEN];
-        let attestation = credential_attestation(
-            "example.com",
-            &credential_id,
-            &material.public_key(),
-            0,
-        );
+        let attestation =
+            credential_attestation("example.com", &credential_id, &material.public_key(), 0);
         let object = cbor::decode(&attestation).unwrap();
         let auth_data = object
             .get_text("authData")
@@ -729,9 +726,7 @@ mod tests {
         // A map without the client data hash.
         let missing = cbor::encode(&Value::Map(vec![(
             Value::Uint(2),
-            Value::Map(vec![
-                (Value::Text("id".into()), Value::Text("x".into())),
-            ]),
+            Value::Map(vec![(Value::Text("id".into()), Value::Text("x".into()))]),
         )]));
         assert_eq!(
             parse_make_credential(&missing),

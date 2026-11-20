@@ -81,7 +81,6 @@ const ENVELOPE_LEN: usize = AGREEMENT_PUB_LEN + crypto::NONCE_LEN + ENVELOPE_PLA
 /// envelope are indistinguishable to the caller: the form is not an oracle.
 const CLAIM_REFUSED: &str = "that code, sealed blob or sender key does not open an account";
 
-
 /// What Settings → Account shows. Safe to read while locked: ids, counts and a
 /// creation timestamp, never key material.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -351,17 +350,15 @@ impl Store {
     /// Reads public shape only, so it answers while locked.
     pub fn account_status(&self) -> Result<AccountStatus, StoreError> {
         let row = self.account_row()?;
-        let device_count: i64 =
-            self.conn()
-                .query_row("SELECT COUNT(*) FROM devices", [], |r| r.get(0))?;
+        let device_count: i64 = self
+            .conn()
+            .query_row("SELECT COUNT(*) FROM devices", [], |r| r.get(0))?;
         Ok(AccountStatus {
             exists: row.is_some(),
             account_id: row.as_ref().map(|row| row.account_id.clone()),
             created_at: row.as_ref().map(|row| row.created_at.max(0) as u64),
             device_count,
-            secret_key_set: row
-                .as_ref()
-                .is_some_and(|row| row.secret_key.is_some()),
+            secret_key_set: row.as_ref().is_some_and(|row| row.secret_key.is_some()),
         })
     }
 
@@ -523,8 +520,8 @@ impl Store {
         if envelope.len() < AGREEMENT_PUB_LEN || envelope[..AGREEMENT_PUB_LEN] != sender[..] {
             return Err(refused());
         }
-        let opened = open_sealed_account(keys.agreement_secret(), code, &envelope)
-            .map_err(|_| refused())?;
+        let opened =
+            open_sealed_account(keys.agreement_secret(), code, &envelope).map_err(|_| refused())?;
         let account_id = opened.account_id().to_string();
         let key_aad = account_aad(&anchor, &account_id, ACCOUNT_KEY_KIND);
         let wrapped = crypto::encrypt(master, &key_aad, &opened.account_key().to_bytes()[..])?;

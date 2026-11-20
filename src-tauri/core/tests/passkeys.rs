@@ -19,7 +19,11 @@ fn password_change_reseals_passkeys_and_retires_the_old_key() {
     let (old_master, meta) = store.initialise(OLD).expect("initialise");
 
     let item = store
-        .save_item(&old_master, &meta, Item::new(Category::Login, "Example".into()))
+        .save_item(
+            &old_master,
+            &meta,
+            Item::new(Category::Login, "Example".into()),
+        )
         .expect("save item");
     let row = PasskeyRow {
         credential_id: vec![0xab; 32],
@@ -65,9 +69,7 @@ fn password_change_reseals_passkeys_and_retires_the_old_key() {
     );
 
     // And it is still attached to the same item.
-    let listed = store
-        .passkeys_for_item(&new_meta, &item.id)
-        .expect("list");
+    let listed = store.passkeys_for_item(&new_meta, &item.id).expect("list");
     assert_eq!(listed.len(), 1);
     assert_eq!(listed[0].credential_id, row.credential_id);
 }

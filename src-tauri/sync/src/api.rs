@@ -84,9 +84,7 @@ impl From<&auth::AuthError> for ApiError {
         match error {
             auth::AuthError::Missing => ApiError::unauthorized("unauthorized", error.to_string()),
             auth::AuthError::Malformed => ApiError::unauthorized("unauthorized", error.to_string()),
-            auth::AuthError::Stale => {
-                ApiError::unauthorized("stale_timestamp", error.to_string())
-            }
+            auth::AuthError::Stale => ApiError::unauthorized("stale_timestamp", error.to_string()),
             auth::AuthError::Replay => ApiError::unauthorized("replay", error.to_string()),
             auth::AuthError::UnknownDevice => {
                 ApiError::unauthorized("unknown_device", error.to_string())
@@ -132,7 +130,8 @@ impl CreateAccountRequest {
                 "device_signing_pub is not a valid, non-weak Ed25519 public key",
             ));
         }
-        let agreement_pub = validate_public_key("device_agreement_pub", &self.device_agreement_pub)?;
+        let agreement_pub =
+            validate_public_key("device_agreement_pub", &self.device_agreement_pub)?;
         let device_name = validate_device_name(self.device_name)?;
         Ok(NewAccount {
             account_id,
@@ -224,7 +223,8 @@ impl ClaimRequest {
                 "device_signing_pub is not a valid, non-weak Ed25519 public key",
             ));
         }
-        let agreement_pub = validate_public_key("device_agreement_pub", &self.device_agreement_pub)?;
+        let agreement_pub =
+            validate_public_key("device_agreement_pub", &self.device_agreement_pub)?;
         let device_name = validate_device_name(self.device_name)?;
         Ok(NewClaim {
             code: self.code,
@@ -277,7 +277,10 @@ impl PushRequest {
     /// op rejects the batch and nothing is written.
     pub fn validate(self) -> Result<Vec<IncomingOp>, ApiError> {
         if self.ops.is_empty() {
-            return Err(ApiError::bad_request("invalid_field", "ops must not be empty"));
+            return Err(ApiError::bad_request(
+                "invalid_field",
+                "ops must not be empty",
+            ));
         }
         if self.ops.len() > MAX_PUSH_OPS {
             return Err(ApiError::bad_request(
@@ -408,7 +411,10 @@ where
     T: for<'de> Deserialize<'de>,
 {
     serde_json::from_slice(body).map_err(|error| {
-        ApiError::bad_request("invalid_body", format!("request body is not valid JSON: {error}"))
+        ApiError::bad_request(
+            "invalid_body",
+            format!("request body is not valid JSON: {error}"),
+        )
     })
 }
 
@@ -443,9 +449,9 @@ pub fn validate_public_key(field: &'static str, value: &str) -> Result<[u8; 32],
         ));
     }
     let bytes = decode_hex(field, value)?;
-    bytes.try_into().map_err(|_| {
-        ApiError::bad_request("invalid_field", format!("{field} must be 32 bytes"))
-    })
+    bytes
+        .try_into()
+        .map_err(|_| ApiError::bad_request("invalid_field", format!("{field} must be 32 bytes")))
 }
 
 fn validate_sealed(value: &str) -> Result<Vec<u8>, ApiError> {
@@ -552,9 +558,8 @@ pub fn decode_hex(field: &'static str, value: &str) -> Result<Vec<u8>, ApiError>
             format!("{field} must be non-empty, even-length hex"),
         ));
     }
-    hex::decode(value).map_err(|_| {
-        ApiError::bad_request("invalid_field", format!("{field} must be hex"))
-    })
+    hex::decode(value)
+        .map_err(|_| ApiError::bad_request("invalid_field", format!("{field} must be hex")))
 }
 
 #[cfg(test)]

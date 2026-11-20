@@ -107,8 +107,7 @@ fn vault_file_from_user(raw: &str) -> Result<PathBuf, String> {
 #[tauri::command]
 pub fn vault_pick_folder(start: Option<String>) -> Result<Option<String>, String> {
     let start = start.map(PathBuf::from);
-    let chosen =
-        crate::dialogs::pick_folder("Choose a folder for the vault", start.as_deref())?;
+    let chosen = crate::dialogs::pick_folder("Choose a folder for the vault", start.as_deref())?;
     Ok(chosen.map(|path| path.to_string_lossy().into_owned()))
 }
 
@@ -125,9 +124,8 @@ pub fn vault_create_at(
     let previous = location.last();
     if let Some(parent) = file.parent() {
         if !parent.as_os_str().is_empty() {
-            std::fs::create_dir_all(parent).map_err(|failure| {
-                format!("cannot create {}: {failure}", parent.display())
-            })?;
+            std::fs::create_dir_all(parent)
+                .map_err(|failure| format!("cannot create {}: {failure}", parent.display()))?;
         }
     }
     // Persist the intent first, then switch: a crash between the two leaves a
@@ -560,9 +558,9 @@ fn live_token<'a>(
     kind: &str,
     client: &str,
 ) -> Result<&'a crate::sdk::SessionToken, String> {
-    let token = tokens
-        .iter()
-        .find(|token| token_kind_name(token.kind) == kind && token.client.as_deref() == Some(client));
+    let token = tokens.iter().find(|token| {
+        token_kind_name(token.kind) == kind && token.client.as_deref() == Some(client)
+    });
     token.ok_or_else(|| {
         format!("{kind} client {client:?} has no live token. Pair it again in Settings.")
     })
@@ -661,7 +659,8 @@ pub fn item_set_grants(
         {
             return Err(format!(
                 "“{}” was not part of {}’s pairing. Pair that client again with the field ticked.",
-                field.label, grant.client.trim()
+                field.label,
+                grant.client.trim()
             ));
         }
         checked.push((
@@ -675,10 +674,7 @@ pub fn item_set_grants(
 
 /// Recent reads of one item, newest first, with the store's cap made explicit.
 #[tauri::command]
-pub fn item_audit(
-    state: State<'_, VaultState>,
-    item_id: String,
-) -> Result<ItemAudit, String> {
+pub fn item_audit(state: State<'_, VaultState>, item_id: String) -> Result<ItemAudit, String> {
     let rows = state.audit_for_item(&item_id).map_err(err)?;
     let truncated = rows.len() >= ITEM_AUDIT_CAP;
     Ok(ItemAudit {
@@ -742,9 +738,7 @@ pub fn cli_revoke(
         .filter(|name| !name.is_empty());
     let had_token = sdk.revoke_cli(client.as_deref());
     if let Some(name) = &client {
-        state
-            .cli_set_grants(name, &[], None, false)
-            .map_err(err)?;
+        state.cli_set_grants(name, &[], None, false).map_err(err)?;
     }
     if !had_token {
         return Err("That CLI token is not paired.".into());

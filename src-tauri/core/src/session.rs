@@ -374,7 +374,9 @@ impl VaultState {
     }
 
     /// [`VaultState::unselected`] with an explicit protector.
-    pub fn unselected_with_protector(protector: Box<dyn Protector>) -> Result<VaultState, VaultError> {
+    pub fn unselected_with_protector(
+        protector: Box<dyn Protector>,
+    ) -> Result<VaultState, VaultError> {
         Ok(VaultState {
             store: Mutex::new(None),
             session: Mutex::new(None),
@@ -828,7 +830,8 @@ impl VaultState {
     /// Create the account for this vault file. Returns the printed Secret Key
     /// exactly once; nothing can ask for it again.
     pub fn account_create(&self) -> Result<AccountCreated, VaultError> {
-        let created = self.with_session(|store, master, _meta| Ok(store.account_create(master)?))?;
+        let created =
+            self.with_session(|store, master, _meta| Ok(store.account_create(master)?))?;
         self.touch();
         Ok(created)
     }
@@ -965,7 +968,7 @@ impl VaultState {
         let mut pending = self.pending.lock().expect("recovery mutex");
         if pending
             .as_ref()
-            .map_or(false, |recovery| recovery.opened.elapsed() >= timeout)
+            .is_some_and(|recovery| recovery.opened.elapsed() >= timeout)
         {
             // `true` for the same reason a session lock returns it: the caller
             // emits `vault://locked`, so a screen waiting on the unwrapped key
@@ -1113,7 +1116,15 @@ impl VaultState {
     ) -> Result<Page, VaultError> {
         self.touch();
         self.with_session(|store, master, meta| {
-            Ok(store.list_page(master, meta, needle, category, favorites_only, limit, offset)?)
+            Ok(store.list_page(
+                master,
+                meta,
+                needle,
+                category,
+                favorites_only,
+                limit,
+                offset,
+            )?)
         })
     }
 
@@ -1223,11 +1234,7 @@ impl VaultState {
     }
 
     /// Remove one credential from one item. Returns whether a row was deleted.
-    pub fn passkey_remove(
-        &self,
-        item_id: &str,
-        credential_id: &[u8],
-    ) -> Result<bool, VaultError> {
+    pub fn passkey_remove(&self, item_id: &str, credential_id: &[u8]) -> Result<bool, VaultError> {
         self.touch();
         self.with_session(|store, _master, meta| {
             Ok(store.passkey_delete(meta, item_id, credential_id)?)
@@ -1267,9 +1274,7 @@ impl VaultState {
     pub fn create_default(&self, category: &str) -> Result<Item, VaultError> {
         let category = Category::from_str(category);
         self.touch();
-        self.with_session(|_store, _master, _meta| {
-            Ok(Item::new(category, title_for(category)))
-        })
+        self.with_session(|_store, _master, _meta| Ok(Item::new(category, title_for(category))))
     }
 
     pub fn delete(&self, id: &str) -> Result<(), VaultError> {
@@ -1300,11 +1305,7 @@ impl VaultState {
 
     /// [`VaultState::copy_field`] without the activity stamp: the SDK's copy
     /// answers a client, not the person at the keyboard.
-    pub fn copy_field_quiet(
-        &self,
-        item_id: &str,
-        field_id: &str,
-    ) -> Result<(), VaultError> {
+    pub fn copy_field_quiet(&self, item_id: &str, field_id: &str) -> Result<(), VaultError> {
         let item = self.get_quiet(item_id)?;
         let value = if field_id == "__notes" {
             item.notes.clone()
@@ -1418,9 +1419,7 @@ impl VaultState {
             }
             checked.push((kind.to_string(), principal_id.clone(), field.clone()));
         }
-        self.with_session(|store, _master, _meta| {
-            Ok(store.set_item_grants(&item.id, &checked)?)
-        })
+        self.with_session(|store, _master, _meta| Ok(store.set_item_grants(&item.id, &checked)?))
     }
 
     /// Every grant held by one principal.
@@ -1481,9 +1480,7 @@ impl VaultState {
             ));
         }
         let checked = self.checked_grants(grants)?;
-        self.with_session(|store, _master, _meta| {
-            Ok(store.replace_mcp_grants(client, &checked)?)
-        })
+        self.with_session(|store, _master, _meta| Ok(store.replace_mcp_grants(client, &checked)?))
     }
 
     /// Replace one CLI token's allowlist. The kind is fixed here so callers
@@ -1596,12 +1593,7 @@ impl VaultState {
     /// happen under one session lock; the clipboard write happens after the
     /// lock is released, exactly like [`Self::copy_field_quiet`]. The audit
     /// label is `cli:<client>` so the shared history says which surface read.
-    pub fn cli_copy(
-        &self,
-        client: &str,
-        item_id: &str,
-        field_id: &str,
-    ) -> Result<(), VaultError> {
+    pub fn cli_copy(&self, client: &str, item_id: &str, field_id: &str) -> Result<(), VaultError> {
         let now = chrono::Utc::now().timestamp();
         let value = self.with_session(|store, master, meta| {
             if !store.grant_allows(GRANT_KIND_CLI, client, item_id, field_id, now)? {
@@ -1709,8 +1701,9 @@ impl VaultState {
     /// The match is exact on the canonical origin, so a page on
     /// `example.com.evil.test` never sees a login saved for `example.com`.
     pub fn browser_items(&self, origin: &str) -> Result<Vec<BrowserItem>, VaultError> {
-        let origin = Store::canonical_browser_origin(origin)
-            .ok_or_else(|| VaultError::Invalid(format!("{origin} is not an http or https origin")))?;
+        let origin = Store::canonical_browser_origin(origin).ok_or_else(|| {
+            VaultError::Invalid(format!("{origin} is not an http or https origin"))
+        })?;
         // `off` is not only "no reveal": the chip has nothing to show, so the
         // metadata is withheld too. `ask` still lists, because the chip is the
         // thing that explains why nothing can be filled.
@@ -1761,8 +1754,9 @@ impl VaultState {
         item_id: &str,
         field_id: &str,
     ) -> Result<String, VaultError> {
-        let origin = Store::canonical_browser_origin(origin)
-            .ok_or_else(|| VaultError::Invalid(format!("{origin} is not an http or https origin")))?;
+        let origin = Store::canonical_browser_origin(origin).ok_or_else(|| {
+            VaultError::Invalid(format!("{origin} is not an http or https origin"))
+        })?;
         self.with_session(|store, master, meta| {
             if store.browser_rule(&origin)? != "fill" {
                 return Err(VaultError::NotGranted);
@@ -1780,11 +1774,7 @@ impl VaultState {
                 return Err(VaultError::FieldNotFound);
             }
             let value = field.value.clone();
-            store.append_mcp_audit(
-                &format!("browser:{origin}"),
-                item_id,
-                field_id,
-            )?;
+            store.append_mcp_audit(&format!("browser:{origin}"), item_id, field_id)?;
             Ok(value)
         })
     }
@@ -1874,7 +1864,9 @@ mod quiet_reads {
     fn an_expired_pending_recovery_reports_itself_as_a_lock() {
         let dir = tempfile::tempdir().expect("temp dir");
         let state = VaultState::open(dir.path().join("kestrel.db")).expect("vault opens");
-        state.create("correct horse battery staple").expect("created");
+        state
+            .create("correct horse battery staple")
+            .expect("created");
         let kit = state.recovery_create().expect("kit");
         state.lock().expect("locked");
         state.recovery_unlock(&kit.code).expect("armed");
@@ -1901,7 +1893,9 @@ mod quiet_reads {
     fn background_reads_do_not_extend_the_idle_timer() {
         let dir = tempfile::tempdir().expect("temp dir");
         let state = VaultState::open(dir.path().join("kestrel.db")).expect("vault opens");
-        state.create("correct horse battery staple").expect("created");
+        state
+            .create("correct horse battery staple")
+            .expect("created");
 
         let activity = || {
             let session = state.session.lock().expect("session mutex");

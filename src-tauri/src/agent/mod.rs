@@ -206,8 +206,7 @@ impl AgentHandle {
             // that must be visible instead of looking like an empty vault.
             Err(AgentError::Unavailable) => {
                 if status.error.is_none() {
-                    status.error =
-                        Some("the SSH agent could not read its key policy".to_string());
+                    status.error = Some("the SSH agent could not read its key policy".to_string());
                 }
             }
         }
@@ -288,8 +287,8 @@ fn key_from_item(item: &Item) -> Result<AgentKey, String> {
     if text.is_empty() {
         return Err("the private key field is empty".into());
     }
-    let key = PrivateKey::from_openssh(text)
-        .map_err(|_| "not an OpenSSH private key".to_string())?;
+    let key =
+        PrivateKey::from_openssh(text).map_err(|_| "not an OpenSSH private key".to_string())?;
     if key.is_encrypted() {
         return Err("passphrase-protected keys cannot be served".into());
     }
@@ -342,9 +341,7 @@ fn signature(key: &PrivateKey, data: &[u8], flags: u32) -> Option<(Algorithm, Ve
                 _ => return None,
             };
             let mut rng = ssh_key::rand_core::OsRng;
-            let bytes = private
-                .sign_with_rng(&mut rng, padding, &digest)
-                .ok()?;
+            let bytes = private.sign_with_rng(&mut rng, padding, &digest).ok()?;
             Some((Algorithm::Rsa { hash: Some(hash) }, bytes))
         }
         // `ssh-key` produces the algorithm-tagged signature for the key type,
@@ -552,7 +549,10 @@ mod tests {
         let backend = backend(&state);
         let identities = backend.identities().expect("identities");
         assert_eq!(identities.len(), 1, "only the plain key is served");
-        assert_eq!(identities[0].key_blob, good.public_key().to_bytes().unwrap());
+        assert_eq!(
+            identities[0].key_blob,
+            good.public_key().to_bytes().unwrap()
+        );
         assert_eq!(identities[0].comment, "served key");
 
         let status = status_of(&state);
@@ -600,7 +600,10 @@ mod tests {
             Err(AgentError::Locked),
             "a locked vault must not even list keys"
         );
-        assert_eq!(backend.sign(&blob, b"commit payload", 0), Err(AgentError::Locked));
+        assert_eq!(
+            backend.sign(&blob, b"commit payload", 0),
+            Err(AgentError::Locked)
+        );
 
         let _ = std::fs::remove_dir_all(dir);
     }
@@ -653,9 +656,14 @@ mod tests {
     fn ecdsa_keys_sign_on_every_enabled_curve() {
         let (state, dir) = scratch_vault("ecdsa");
         let mut keys = Vec::new();
-        for curve in [EcdsaCurve::NistP256, EcdsaCurve::NistP384, EcdsaCurve::NistP521] {
-            let key = PrivateKey::random(&mut ssh_key::rand_core::OsRng, Algorithm::Ecdsa { curve })
-                .expect("ecdsa key");
+        for curve in [
+            EcdsaCurve::NistP256,
+            EcdsaCurve::NistP384,
+            EcdsaCurve::NistP521,
+        ] {
+            let key =
+                PrivateKey::random(&mut ssh_key::rand_core::OsRng, Algorithm::Ecdsa { curve })
+                    .expect("ecdsa key");
             add_key(&state, &format!("ecdsa {}", curve.as_str()), &key);
             keys.push((key, format!("ecdsa-sha2-{}", curve.as_str())));
         }
@@ -801,7 +809,9 @@ mod tests {
                 );
                 eprintln!("ssh-add -l output: {}", stdout.trim());
             }
-            Err(error) => eprintln!("ssh-add not available, external client check skipped: {error}"),
+            Err(error) => {
+                eprintln!("ssh-add not available, external client check skipped: {error}")
+            }
         }
 
         // REQUEST_IDENTITIES -> IDENTITIES_ANSWER with the vault key.

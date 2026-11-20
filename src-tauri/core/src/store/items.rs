@@ -107,9 +107,9 @@ impl Store {
     /// trash surface is what hides them from the list, not this read.
     pub fn get(&self, master: &SymKey, meta: &VaultMeta, id: &str) -> Result<Item, StoreError> {
         let key = self.sealing_key(master, meta, id)?;
-        let mut stmt = self.conn.prepare(
-            "SELECT version, data FROM items WHERE vault_uuid = ?1 AND item_uuid = ?2",
-        )?;
+        let mut stmt = self
+            .conn
+            .prepare("SELECT version, data FROM items WHERE vault_uuid = ?1 AND item_uuid = ?2")?;
         let row = stmt.query_row(params![meta.vault_uuid, id], |r| {
             Ok((r.get::<_, i64>(0)?, r.get::<_, Vec<u8>>(1)?))
         });
@@ -335,12 +335,7 @@ impl Store {
     /// destroying the only copy of an item a concurrent edit is still arguing
     /// about. Trashing an already-trashed item keeps the first deletion time;
     /// restoring a live item is a no-op. An unknown item is [`StoreError::NotFound`].
-    pub fn set_trashed(
-        &self,
-        meta: &VaultMeta,
-        id: &str,
-        trashed: bool,
-    ) -> Result<(), StoreError> {
+    pub fn set_trashed(&self, meta: &VaultMeta, id: &str, trashed: bool) -> Result<(), StoreError> {
         let stamp = if trashed {
             Some(chrono::Utc::now().timestamp())
         } else {

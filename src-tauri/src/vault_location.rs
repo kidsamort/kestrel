@@ -57,12 +57,8 @@ impl VaultLocation {
         let text = path
             .to_str()
             .ok_or_else(|| "the vault path is not valid unicode".to_string())?;
-        std::fs::create_dir_all(&self.config_dir).map_err(|failure| {
-            format!(
-                "cannot create {}: {failure}",
-                self.config_dir.display()
-            )
-        })?;
+        std::fs::create_dir_all(&self.config_dir)
+            .map_err(|failure| format!("cannot create {}: {failure}", self.config_dir.display()))?;
         let record = StoredLocation {
             last_vault: Some(text.to_string()),
         };
@@ -121,10 +117,8 @@ mod tests {
     use super::*;
 
     fn scratch(tag: &str) -> PathBuf {
-        let dir = std::env::temp_dir().join(format!(
-            "kestrel-location-{tag}-{}",
-            std::process::id()
-        ));
+        let dir =
+            std::env::temp_dir().join(format!("kestrel-location-{tag}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).expect("scratch dir");
         dir

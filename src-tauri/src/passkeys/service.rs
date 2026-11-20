@@ -10,7 +10,7 @@ use kestrel_core::session::{VaultError, VaultState};
 use kestrel_passkey::cose::SigningMaterial;
 use kestrel_passkey::ipc;
 use kestrel_passkey::webauthn::{
-    self, AuthenticatorData, FLAG_AT, FLAG_UP, GetAssertionRequest, MakeCredentialRequest,
+    self, AuthenticatorData, GetAssertionRequest, MakeCredentialRequest, FLAG_AT, FLAG_UP,
 };
 use tauri::{AppHandle, Manager};
 
@@ -34,10 +34,7 @@ fn ctap_error(code: u8) -> Vec<u8> {
 pub fn handle(app: &AppHandle, op: u8, payload: &[u8]) -> (u8, Vec<u8>) {
     let state = app.state::<VaultState>();
     match op {
-        ipc::OP_STATUS => (
-            ipc::STATUS_OK,
-            vec![if state.is_locked() { 1 } else { 0 }],
-        ),
+        ipc::OP_STATUS => (ipc::STATUS_OK, vec![if state.is_locked() { 1 } else { 0 }]),
         ipc::OP_MAKE_CREDENTIAL => respond(make_credential(&state, payload)),
         ipc::OP_GET_ASSERTION => respond(get_assertion(app, &state, payload)),
         _ => (ipc::STATUS_ERROR, Vec::new()),
@@ -52,10 +49,7 @@ fn respond(result: Result<Vec<u8>, VaultError>) -> (u8, Vec<u8>) {
     }
 }
 
-fn make_credential(
-    state: &VaultState,
-    payload: &[u8],
-) -> Result<Vec<u8>, VaultError> {
+fn make_credential(state: &VaultState, payload: &[u8]) -> Result<Vec<u8>, VaultError> {
     let request: MakeCredentialRequest = match webauthn::parse_make_credential(payload) {
         Ok(request) => request,
         // A malformed request is the caller's problem; CTAP2 has a status for
@@ -67,7 +61,10 @@ fn make_credential(
         // would tell the relying party a verification happened that did not.
         return Ok(ctap_error(CTAP2_ERR_UNSUPPORTED_OPTION));
     }
-    if !request.algorithms.contains(&kestrel_passkey::cose::ALG_ES256) {
+    if !request
+        .algorithms
+        .contains(&kestrel_passkey::cose::ALG_ES256)
+    {
         return Ok(ctap_error(CTAP2_ERR_UNSUPPORTED_ALGORITHM));
     }
     for excluded in &request.exclude_list {
@@ -137,8 +134,7 @@ fn get_assertion(
     if request.require_uv {
         return Ok(ctap_error(CTAP2_ERR_UNSUPPORTED_OPTION));
     }
-    let Some(material) =
-        state.passkey_open_for_assertion(&request.rp_id, &request.allow_list)?
+    let Some(material) = state.passkey_open_for_assertion(&request.rp_id, &request.allow_list)?
     else {
         return Ok(ctap_error(CTAP2_ERR_NO_CREDENTIALS));
     };
@@ -168,16 +164,12 @@ fn get_assertion(
         extensions: None,
     }
     .to_bytes();
-    let signature =
-        match webauthn::sign_assertion(&signing, &auth_data, &request.client_data_hash) {
-            Ok(signature) => signature,
-            Err(_) => return Ok(ctap_error(CTAP2_ERR_OTHER)),
-        };
-    state.passkey_record_use(
-        &material.row.credential_id,
-        &material.private_key,
-        next,
-    )?;
+    let signature = match webauthn::sign_assertion(&signing, &auth_data, &request.client_data_hash)
+    {
+        Ok(signature) => signature,
+        Err(_) => return Ok(ctap_error(CTAP2_ERR_OTHER)),
+    };
+    state.passkey_record_use(&material.row.credential_id, &material.private_key, next)?;
     Ok(webauthn::get_assertion_response(
         &material.row.credential_id,
         &auth_data,
